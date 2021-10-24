@@ -2,10 +2,9 @@ object MyApp {
 
     def main(args: Array[String]): Unit = {
 
-        val p = new InvasionPercolationNetwork(30, 30, 0.4.toFloat)
-        val a = p.makeNewNetwork()
+        val net = InvasionPercolationNetwork.make(30, 30, 0.4.toFloat)
         println("reached")
-        InvasionPercolationNetwork.draw(a)
+        println(net.toString)
 
     }
 

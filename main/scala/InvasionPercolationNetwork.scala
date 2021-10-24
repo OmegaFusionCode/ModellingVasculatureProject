@@ -8,79 +8,70 @@ class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
     require(occupancy >= 0.0 && occupancy <= 1.0)
 
     private type Cell = InvasionPercolationNetwork.Cell
-    //private type IPCell = InvasionPercolationNetwork.IPCell
 
-    // This is how many squares we fill. We round
+    // This is how many squares we fill.
     private val numToFill = scala.math.round(x * y * occupancy)
 
     private val r = new scala.util.Random()
 
-    def makeNewNetwork(): Array[Array[Boolean]] = {
+    private val capacities = Array.fill(x)(Array.fill(y)(r.nextFloat()))
 
-        val capacities = Array.fill(x)(Array.fill(y)(r.nextFloat()))
-
-        // pair each capacity with its index
-        val indices: Array[Array[Cell]] = capacities.zipWithIndex.map {
-            case (a,i) => a.zipWithIndex.map {
-                case (b,j) => new Cell(b, i, j)
-            }
+    // Make a cell for each space in the domain.
+    private val cells: Array[Array[Cell]] = capacities.zipWithIndex.map {
+        case (a,i) => a.zipWithIndex.map {
+            case (b,j) => Cell(b, i, j)
         }
-
-        // The queue stores, as a pair, the capacity of the cell and its index
-        val q = new mutable.PriorityQueue[Cell]()
-
-        val inQueue, inNetwork = Array.ofDim[Boolean](x, y)
-
-        val cells = Array.ofDim[Cell](x, y)
-        // (0, 0) is in the network initially
-        inNetwork(0)(0)= true
-        // This means that (0, 1) and (1, 0) are scheduled to be added
-        inQueue(0)(0) = true
-        inQueue(0)(1) = true
-        inQueue(1)(0) = true
-        q.enqueue(indices(1)(0))
-        q.enqueue(indices(0)(1))
-
-        for (_ <- 2 to numToFill) {
-
-            // Add cell at front of queue to the network
-            val Cell(_, i, j) = q.dequeue()
-
-            inNetwork(i)(j) = true
-
-            // add adjacent cells
-            if (i > 0 && !inQueue(i-1)(j)) {
-                inQueue(i-1)(j) = true
-                q.enqueue(indices(i-1)(j))
-            }
-            if (i < x-1 && !inQueue(i+1)(j)) {
-                inQueue(i+1)(j) = true
-                q.enqueue(indices(i+1)(j))
-            }
-            if (j > 0 && !inQueue(i)(j-1)) {
-                inQueue(i)(j-1) = true
-                q.enqueue(indices(i)(j-1))
-            }
-            if (j < y-1 && !inQueue(i)(j+1)) {
-                inQueue(i)(j+1) = true
-                q.enqueue(indices(i)(j+1))
-            }
-        }
-        inNetwork
     }
+
+    // The queue stores cells in the domain of the network, ordered by the strength of the cell.
+    private val q = new mutable.PriorityQueue[Cell]()
+
+    // A procedure to find the neighbours of a particular cell and add them to the priority queue.
+    private def discoverNeighbours(c: Cell, step: Int): Unit = {
+        val Cell(_, i, j) = c
+        val neighbours = List((i-1, j), (i+1, j), (i, j-1), (i, j+1))
+        for ((i2, j2) <- neighbours if i2 >= 0 && j2 >= 0 && i2 < x && j2 < y) {
+            val c2 = cells(i2)(j2)
+            if (!c2.isDiscovered) {
+                c2.discovered = step
+                q.enqueue(c2)
+            }
+        }
+    }
+
+    // (0, 0) is the first node to be added to the network
+    cells(0)(0).discovered = 0
+    q.enqueue(cells(0)(0))
+
+    for (step <- 1 to numToFill) {
+
+        // Add cell at front of queue to the network
+        val c = q.dequeue()
+        c.reached = step
+        discoverNeighbours(c, step)
+    }
+
+    override def toString: String =
+        cells.map(_.map(_.toString).mkString("")).mkString("\n")
 
 }
 
 object InvasionPercolationNetwork {
 
     private case class Cell(cap: Float, i: Int, j: Int) extends Ordered[Cell] {
+        // Initially, a cell is undiscovered and unreached.
         var discovered: Int = -1
         var reached: Int = -1
+
+        def isDiscovered: Boolean = reached != -1
+        def isReached: Boolean = reached != -1
+
+        // We order the cells by their strength in the priority queue.
         def compare(that: Cell): Int = this.cap compare that.cap
+
+        override def toString: String = if (isReached) "███" else "   "
     }
 
-    def draw(a: Array[Array[Boolean]]): Unit =
-        println(a.map(_.map(if (_) "██" else "  ").mkString("")).mkString("\n"))
-
+    def make(x: Int, y: Int, occupancy: Float) = new InvasionPercolationNetwork(x, y, occupancy)
 
 }
