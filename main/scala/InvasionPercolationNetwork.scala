@@ -5,7 +5,7 @@ import scala.collection.mutable
 
 class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
 
-    require(occupancy >= 0.0 && occupancy <= 1.0)
+    require(occupancy >= 0.0 && occupancy <= 1.0 && x>0 && y>0)
 
     private type Cell = InvasionPercolationNetwork.Cell
 
