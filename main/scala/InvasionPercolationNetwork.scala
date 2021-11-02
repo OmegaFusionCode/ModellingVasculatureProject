@@ -17,7 +17,7 @@ class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
     private val capacities = Array.fill(x)(Array.fill(y)(r.nextFloat()))
 
     // Make a cell for each space in the domain.
-    private val cells: Array[Array[Cell]] = capacities.zipWithIndex.map {
+    val cells: Array[Array[Cell]] = capacities.zipWithIndex.map {
         case (a,i) => a.zipWithIndex.map {
             case (b,j) => Cell(b, i, j)
         }
@@ -34,6 +34,9 @@ class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
             val c2 = cells(i2)(j2)
             if (!c2.isDiscovered) {
                 c2.discovered = step
+                // When we add a cell to the queue, it is UNREACHED and DISCOVERED
+                assert(!c2.isReached)
+                assert(c2.isDiscovered)
                 q.enqueue(c2)
             }
         }
@@ -47,7 +50,9 @@ class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
 
         // Add cell at front of queue to the network
         val c = q.dequeue()
+        assert(!c.isReached)
         c.reached = step
+        assert(c.isReached)
         discoverNeighbours(c, step)
     }
 
@@ -58,12 +63,12 @@ class InvasionPercolationNetwork(x: Int, y: Int, occupancy: Float) {
 
 object InvasionPercolationNetwork {
 
-    private case class Cell(cap: Float, i: Int, j: Int) extends Ordered[Cell] {
+    case class Cell(cap: Float, i: Int, j: Int) extends Ordered[Cell] {
         // Initially, a cell is undiscovered and unreached.
         var discovered: Int = -1
         var reached: Int = -1
 
-        def isDiscovered: Boolean = reached != -1
+        def isDiscovered: Boolean = discovered != -1
         def isReached: Boolean = reached != -1
 
         // We order the cells by their strength in the priority queue.
