@@ -13,9 +13,11 @@ class VascularDomain(ABC):
     def generate_point(self) -> Vec2D:
         """Generate a random point in the domain. """
 
+    @abc.abstractmethod
     def contains(self, p) -> bool:
         """Test that the domain contains p. """
 
+    @abc.abstractmethod
     def sample_discretised_points(self, heuristic: PointSampleHeuristic) -> List[Vec2D]:
         """Get some points according to some method. """
 
