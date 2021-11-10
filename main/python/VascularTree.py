@@ -16,6 +16,10 @@ class VascularTree:
         self.vessels = vessels
         self.domain = domain
 
+    @property
+    def cost(self) -> float:
+        return sum(v.cost for v in self.vessels)
+
     def nearest_point_to(self, p):
         nearest = None
         for v in self.vessels:
@@ -37,14 +41,9 @@ class VascularTree:
         h = PointSampleHeuristic(xdi, vj.proximal_point, vj.distal_point, INTERVALS)
         return self.domain.sample_discretised_points(h)
 
-    def cost(self) -> float:
-        return sum(v.cost for v in self.vessels)
-
     def next_vascular_tree(self) -> VascularTree:
-        costs = []
-        min_cost = None
         best_tree = None
-        while len(costs) == 0:
+        while best_tree is None:
             xdi = self.domain.generate_point()
             #xn = self.nearest_point_to(xdi)
             # TODO: Compute the nearest point to xdi.
@@ -54,9 +53,6 @@ class VascularTree:
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
                     new_tree = self.bifurcate(vj, xj, xdi)
-                    c = new_tree.cost()
-                    if min_cost is None or c < min_cost:
-                        min_cost = c
+                    if best_tree is None or new_tree.cost < best_tree.cost:
                         best_tree = new_tree
-                    costs.append(c)
         return best_tree
