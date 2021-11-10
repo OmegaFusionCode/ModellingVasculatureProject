@@ -81,6 +81,9 @@ class Vec2D:
     def __iter__(self):
         return iter((self.x, self.y))
 
+    def __eq__(self, other):
+        return (self.arr == other.arr).all()
+
     @property
     def x(self):
         return self.arr[0]

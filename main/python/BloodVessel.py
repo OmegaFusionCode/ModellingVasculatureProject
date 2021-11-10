@@ -13,6 +13,11 @@ class BloodVessel:
         self.proximal_point = proximal_point
         self.distal_point = distal_point
 
+    def __eq__(self, other):
+        return self.radius == other.radius and \
+               self.proximal_point == other.proximal_point and \
+               self.distal_point == other.distal_point
+
     @property
     def cost(self):
         r = self.radius
