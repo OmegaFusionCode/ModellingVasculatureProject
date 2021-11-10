@@ -10,6 +10,7 @@ from VascularDomain import VascularDomain
 INTERVALS = 5
 RADIUS = 1
 
+
 class VascularTree:
 
     def __init__(self, vessels: List[BloodVessel], domain: VascularDomain):
