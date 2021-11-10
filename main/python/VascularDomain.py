@@ -35,7 +35,8 @@ class RectangularVascularDomain(VascularDomain):
         return self.x >= p.x >= 0 and self.y >= p.y >= 0
 
     def sample_discretised_points(self, heuristic: PointSampleHeuristic):
-        """Select points in the domain according to the given point sampling heuristic. """
+        """Select points in the domain according to the given point sampling heurstic. """
+
         return [p for p in heuristic.points if self.contains(p)]
 
 
@@ -44,7 +45,6 @@ def main():
     h = PointSampleHeuristic(Vec2D(1, 1), Vec2D(5, 4), Vec2D(7, 2), 3)
     ps = v.sample_discretised_points(h)
     print(ps)
-
 
 if __name__ == '__main__':
     main()
