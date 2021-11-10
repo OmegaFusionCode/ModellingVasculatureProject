@@ -26,7 +26,11 @@ class App:
         print(f"Drawing state at iteration {index+1}")
         for v in self.trees[index].vessels:
             # print(f"Vessel with radius {v.radius} at {v.proximal_point}, {v.distal_point}")
-            pg.draw.line(self.surface, (255, 0, 0), tuple(v.proximal_point * 10), tuple(v.distal_point * 10))
+            pg.draw.line(self.surface,
+                         (255, 0, 0),
+                         tuple(v.proximal_point * 10),
+                         tuple(v.distal_point * 10),
+                         round(v.radius))
         pg.display.flip()
 
     def run(self):
