@@ -42,6 +42,25 @@ class RectangularVascularDomain(VascularDomain):
         return [p for p in heuristic.points if self.contains(p)]
 
 
+class CircularVascularDomain(VascularDomain):
+
+    def __init__(self, radius):
+        self.radius = radius
+        self.enclosure = RectangularVascularDomain(radius*2, radius*2)
+
+    def generate_point(self) -> Vec2D:
+        p = self.enclosure.generate_point()
+        while not self.contains(p):
+            p = self.enclosure.generate_point()
+        return p
+
+    def contains(self, p) -> bool:
+        return abs(p - Vec2D(self.radius, self.radius)) < self.radius
+
+    def sample_discretised_points(self, heuristic: PointSampleHeuristic) -> List[Vec2D]:
+        return [p for p in self.enclosure.sample_discretised_points(heuristic) if self.contains(p)]
+
+
 def main():
     v = RectangularVascularDomain(10, 10)
     h = PointSampleHeuristic(Vec2D(1, 1), Vec2D(5, 4), Vec2D(7, 2), 3)

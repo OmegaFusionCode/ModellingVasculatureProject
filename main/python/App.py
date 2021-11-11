@@ -2,17 +2,17 @@ import pygame as pg
 
 from CCONetworkBuilder import CCONetworkBuilder
 from LinAlg import Vec2D
-from VascularDomain import RectangularVascularDomain
+from VascularDomain import RectangularVascularDomain, CircularVascularDomain
 
 
 class App:
 
     def __init__(self, iterations):
         pg.init()
-        pg.display.set_mode((750, 750))
+        pg.display.set_mode((800, 800))
         self.surface = pg.display.get_surface()
-        self.domain = v = RectangularVascularDomain(75, 75)
-        self.builder = b = CCONetworkBuilder(1, Vec2D(37.5, 0), None, v)
+        self.domain = v = CircularVascularDomain(40)
+        self.builder = b = CCONetworkBuilder(1, Vec2D(40, 0), None, v)
         tree_gen = b.generate_trees(iterations)
         self.trees = []
         print("Starting iteration ", end="")
@@ -26,11 +26,11 @@ class App:
         print(f"Drawing state at iteration {index+1}")
         for v in self.trees[index].vessels:
             # print(f"Vessel with radius {v.radius} at {v.proximal_point}, {v.distal_point}")
-            pg.draw.line(self.surface,
-                         (255, 0, 0),
-                         tuple(v.proximal_point * 10),
-                         tuple(v.distal_point * 10),
-                         round(v.radius),
+            pg.draw.line(surface=self.surface,
+                         color=(255, 0, 0),
+                         start_pos=tuple(v.proximal_point * 10),
+                         end_pos=tuple(v.distal_point * 10),
+                         width=round(v.radius),
                          )
         pg.display.flip()
 
