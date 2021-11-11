@@ -9,6 +9,11 @@ from PointSampleHeuristic import PointSampleHeuristic
 
 class VascularDomain(ABC):
 
+    @property
+    @abc.abstractmethod
+    def characteristic_length(self):
+        """The characteristic length of the region. """
+
     @abc.abstractmethod
     def generate_point(self) -> Vec2D:
         """Generate a random point in the domain. """
@@ -27,6 +32,10 @@ class RectangularVascularDomain(VascularDomain):
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+    @property
+    def characteristic_length(self):
+        raise NotImplementedError("Rectangular vascular domains currently do not have a characteristic length.")
 
     def generate_point(self) -> Vec2D:
         i = random.uniform(0, self.x)
@@ -47,6 +56,10 @@ class CircularVascularDomain(VascularDomain):
     def __init__(self, radius):
         self.radius = radius
         self.enclosure = RectangularVascularDomain(radius*2, radius*2)
+
+    @property
+    def characteristic_length(self):
+        return self.radius
 
     def generate_point(self) -> Vec2D:
         p = self.enclosure.generate_point()
