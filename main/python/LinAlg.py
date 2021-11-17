@@ -5,6 +5,7 @@ import numpy as np
 
 
 class LineSegment:
+    """The line segment bounded by the endpoints a and b."""
 
     def __init__(self, a, b):
         self.a = a
@@ -13,18 +14,22 @@ class LineSegment:
 
     @property
     def length(self):
+        """The length of the line segment."""
         a = self.a
         b = self.b
         return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
     @property
     def vector(self):
+        """The vector of the path from a to b."""
         a = self.a
         b = self.b
         return Vec2D(b.x - a.x, b.y - a.y)
 
     @staticmethod
     def on_segment(p, q, r):
+        """Test if q lies in the bounding box of the line segment pr"""
+        # TODO: Make this a non-static method.
         if ((q.x <= max(p.x, r.x)) and (q.x >= min(p.x, r.x)) and
                 (q.y <= max(p.y, r.y)) and (q.y >= min(p.y, r.y))):
             return True
@@ -32,6 +37,11 @@ class LineSegment:
 
     @staticmethod
     def orientation(p, q, r):
+        """Determine the relationship between p, q and r.
+        :returns 0 if p, q and r are collinear.
+        :returns 1 if p, q and r are clockwise.
+        :returns -1 if p, q and r are anticlockwise.
+        """
         val = (float(q.y - p.y) * (r.x - q.x)) - (float(q.x - p.x) * (r.y - q.y))
         if val > 0:
             return 1
@@ -41,6 +51,7 @@ class LineSegment:
             return 0
 
     def intersects_with(self, other: LineSegment):
+        """Test if this intersects with other."""
         p1 = self.a
         q1 = self.b
         p2 = other.a
@@ -86,10 +97,12 @@ class Vec2D:
 
     @property
     def x(self):
+        """The x value of this vector."""
         return self.arr[0]
 
     @property
     def y(self):
+        """The y value of this vector."""
         return self.arr[1]
 
     def __add__(self, other):
@@ -105,23 +118,34 @@ class Vec2D:
 
 
 def parallel(a, b) -> bool:
+    """Test if a and b are parallel vectors.
+    :returns True if a and b are parallel, False otherwise.
+    """
     # Since we are using floats, we shouldn't directly compare the values.
     return abs(np.dot(a, b) * np.dot(a, b) - np.dot(a, a) * np.dot(b, b)) < 2 * np.finfo(float).eps
 
 
 class Line:
+    """Lines expressed as a position vector and a direction vector."""
 
     def __init__(self, start, direction):
         self.p = start
         self.d = direction
 
     def is_point_on_line(self, p) -> bool:
+        """Tests if p is on the line.
+        :returns True if p is on the line, False otherwise.
+        """
         new_p = p - self.p
         return parallel(new_p, self.d)
 
-    def find_scalars_at_intersection(self, line):
-        new_p = line.p - self.p
-        m = np.array((self.d, -line.d)).transpose()
+    def find_scalars_at_intersection(self, other):
+        """Find the values that we have to multiply the direction vectors of this and other by to find the point of
+        intersection in the line equation.
+        :returns an array containing the two scalars, or None if the lines are parallel.
+        """
+        new_p = other.p - self.p
+        m = np.array((self.d, -other.d)).transpose()
         # new_p = m*ans
         try:
             # TODO: Make this work for 3D.
@@ -131,6 +155,9 @@ class Line:
             return None
 
     def find_point_of_intersection(self, line):
+        """Find the point at which this and other intersect.
+        :returns the point of intersection, or None if the lines are parallel.
+        """
         s = self.find_scalars_at_intersection(line)
         if s is None:
             return None
