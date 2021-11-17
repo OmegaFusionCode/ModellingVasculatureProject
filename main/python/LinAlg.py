@@ -26,6 +26,33 @@ class LineSegment:
         b = self.b
         return Vec2D(b.x - a.x, b.y - a.y)
 
+    def distance_to(self, p: Vec2D):
+        #A = p.x - self.a.x
+        #B = p.y - self.a.y
+        #C = self.b.x - self.a.x
+        #D = self.b.y - self.a.y
+        #dot = A*C + B*D
+
+        ab = self.vector.arr
+        ap = p.arr - self.a.arr
+
+        dot = np.dot(ab, ap)
+        len_sq = self.length ** 2
+        param = dot/len_sq if len_sq != 0 else -1
+
+        if param < 0:
+            #xx = self.a.x
+            #yy = self.a.y
+            res = self.a.arr
+        elif param > 1:
+            #xx = self.b.x
+            #yy = self.b.y
+            res = self.a.arr
+        else:
+            #xx = self.a.x + param*
+            res = self.a.arr + param*ap
+        return np.linalg.norm(p.arr - res)
+
     @staticmethod
     def on_segment(p, q, r):
         """Test if q lies in the bounding box of the line segment pr"""
@@ -94,6 +121,15 @@ class Vec2D:
 
     def __eq__(self, other):
         return (self.arr == other.arr).all()
+
+    def __abs__(self):
+        return np.linalg.norm(self.arr)
+
+    def __hash__(self):
+        # Numpy arrays are mutable and therefore not hashable, so we hash the tuple of it instead.
+        # This now means we must be careful not to mutate the array.
+        # TODO: Fix this problem or figure out that hashing these values is not something we need to do.
+        return hash(tuple(self.arr))
 
     @property
     def x(self):

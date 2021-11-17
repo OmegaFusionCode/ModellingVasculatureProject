@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import math
 from typing import List
 
 from BloodVessel import BloodVessel
+from LinAlg import Vec2D
 from PointSampleHeuristic import PointSampleHeuristic
 from VascularDomain import VascularDomain
 
@@ -42,12 +44,26 @@ class VascularTree:
         h = PointSampleHeuristic(xdi, vj.proximal_point, vj.distal_point, INTERVALS)
         return self.domain.sample_discretised_points(h)
 
+    def generate_next_point(self):
+        def new_point(): return self.domain.generate_point()
+        def valid(p: Vec2D): return all(v.line_seg.distance_to(p) > l_min for v in self.vessels)
+        l_min = self.min_vessel_length
+        i = 0
+        while not valid(p := new_point()):
+            if (i := i + 1) == 10:
+                print(l_min)
+                i = 0
+                l_min *= 0.5
+        return p
+
+    @property
+    def min_vessel_length(self) -> float:
+        return self.domain.characteristic_length * math.sqrt(1 / (len(self.vessels) + 1))
+
     def next_vascular_tree(self) -> VascularTree:
         best_tree = None
         while best_tree is None:
-            xdi = self.domain.generate_point()
-            #xn = self.nearest_point_to(xdi)
-            # TODO: Compute the nearest point to xdi.
+            xdi = self.generate_next_point()
             reachable = self.vessels  #self.vessels_reachable_from(xdi)
             # TODO: Ignore unreachable vessels early.
             for vj in reachable:

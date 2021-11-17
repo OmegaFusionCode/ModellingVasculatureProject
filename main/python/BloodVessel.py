@@ -19,12 +19,20 @@ class BloodVessel:
                self.distal_point == other.distal_point
 
     @property
+    def length(self):
+        return abs(self.distal_point - self.proximal_point)
+
+    @property
     def cost(self):
         r = self.radius
         xp, yp = self.proximal_point
         xd, yd = self.distal_point
         length = sqrt((xp - xd) ** 2 + (yp - yd) ** 2)
         return pi * r**2 * length
+
+    @property
+    def line_seg(self):
+        return LineSegment(self.proximal_point, self.distal_point)
 
     def nearest_point_to(self, p: Vec2D) -> Vec2D:
         a = self.proximal_point
