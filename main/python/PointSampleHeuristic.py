@@ -14,6 +14,7 @@ class PointSampleHeuristic:
 
     @property
     def points(self) -> List[Vec2D]:
+        """Get the list of points to sample. """
         p, q, r, n = self.p, self.q, self.r, self.n
         pq = LineSegment(p, q)
         unit_pq = pq.vector * (1/(n-1))

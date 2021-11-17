@@ -20,10 +20,12 @@ class BloodVessel:
 
     @property
     def length(self):
+        """The length of the blood vessel. """
         return abs(self.distal_point - self.proximal_point)
 
     @property
     def cost(self):
+        """The cost of the blood vessel is its volume. """
         r = self.radius
         xp, yp = self.proximal_point
         xd, yd = self.distal_point
@@ -32,9 +34,12 @@ class BloodVessel:
 
     @property
     def line_seg(self):
+        """The line segment that represents the position of the blood vessel. """
         return LineSegment(self.proximal_point, self.distal_point)
 
     def nearest_point_to(self, p: Vec2D) -> Vec2D:
+        """The closest point to p on the blood vessel. """
+        # TODO: Remove, or move to LineSegment
         a = self.proximal_point
         b = self.distal_point
         a_to_p = Vec2D(p.x - a.x, p.y - a.y)

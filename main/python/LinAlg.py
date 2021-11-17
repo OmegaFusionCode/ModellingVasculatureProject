@@ -108,6 +108,7 @@ class Vec2D:
 
     @staticmethod
     def from_array(array) -> Vec2D:
+        """Alternative constructor to build from an existing Numpy array."""
         return Vec2D(array[0], array[1])
 
     def __init__(self, x, y) -> None:
