@@ -27,12 +27,6 @@ class LineSegment:
         return Vec2D(b.x - a.x, b.y - a.y)
 
     def distance_to(self, p: Vec2D):
-        #A = p.x - self.a.x
-        #B = p.y - self.a.y
-        #C = self.b.x - self.a.x
-        #D = self.b.y - self.a.y
-        #dot = A*C + B*D
-
         ab = self.vector.arr
         ap = p.arr - self.a.arr
 
@@ -41,15 +35,10 @@ class LineSegment:
         param = dot/len_sq if len_sq != 0 else -1
 
         if param < 0:
-            #xx = self.a.x
-            #yy = self.a.y
             res = self.a.arr
         elif param > 1:
-            #xx = self.b.x
-            #yy = self.b.y
             res = self.a.arr
         else:
-            #xx = self.a.x + param*
             res = self.a.arr + param*ab
         return np.linalg.norm(p.arr - res)
 
