@@ -154,12 +154,15 @@ class Vec2D:
         return Vec2D(x, y)
 
 
-def parallel(a, b) -> bool:
+
+# TODO: Improve the tolerance.
+def parallel(a, b, tolerance=3e-10) -> bool:
     """Test if a and b are parallel vectors.
     :returns True if a and b are parallel, False otherwise.
     """
-    # Since we are using floats, we shouldn't directly compare the values.
-    return abs(np.dot(a, b) * np.dot(a, b) - np.dot(a, a) * np.dot(b, b)) < 2 * np.finfo(float).eps
+    dot = abs(np.dot(a.arr, b.arr))
+    lengths = abs(a) * abs(b)
+    return dot - lengths < tolerance
 
 
 class Line:
