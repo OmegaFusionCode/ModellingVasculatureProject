@@ -50,7 +50,7 @@ class LineSegment:
             res = self.a.arr
         else:
             #xx = self.a.x + param*
-            res = self.a.arr + param*ap
+            res = self.a.arr + param*ab
         return np.linalg.norm(p.arr - res)
 
     @staticmethod
