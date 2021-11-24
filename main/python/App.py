@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import pygame as pg
 
@@ -51,7 +52,12 @@ class App:
 
 if __name__ == '__main__':
     # Set up the logger and enable printing to the console.
-    logging.basicConfig(filename="app.log", level=logging.DEBUG)
+    dt = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    print(dt)
+    logging.basicConfig(filename=f"./logs/{dt}.log",
+                        filemode="w",
+                        level=logging.DEBUG,
+                        )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = App(500)
+    app = App(200)
     app.run()
