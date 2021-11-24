@@ -4,7 +4,7 @@ import logging
 import math
 from typing import List
 
-from BloodVessel import BloodVessel
+from BloodVessel import BloodVessel, VesselGroup, test_for_length_zero
 from LinAlg import Vec2D
 from PointSampleHeuristic import PointSampleHeuristic
 from VascularDomain import VascularDomain
@@ -34,17 +34,19 @@ class VascularTree:
                 nearest = this_nearest
         return nearest
 
-    def bifurcate(self, vj: BloodVessel, xp, xd) -> VascularTree:
+    def relative_cost(self, bifurcation):
+        vj, group = bifurcation
+        return group.cost - vj.cost
+
+    def bifurcate(self, vj: BloodVessel, xp, xd) -> VesselGroup:
         """Given an existing blood vessel vj, bifurcation point xp and terminal point xd,
-        :return a VascularTree with vj bifurcated at xp.
+        :return a VesselGroup with the new vessels resulting from bifurcation.
         """
         xpj = vj.proximal_point
         xdj = vj.distal_point
-        new_vessels = [v for v in self.vessels if v is not vj]
-        new_vessels += [BloodVessel(RADIUS, xp, xd),
-                        BloodVessel(RADIUS, xp, xdj),
-                        BloodVessel(RADIUS, xpj, xp)]
-        return VascularTree(new_vessels, self.domain)
+        return VesselGroup([BloodVessel(RADIUS, xp, xd),
+                            BloodVessel(RADIUS, xp, xdj),
+                            BloodVessel(RADIUS, xpj, xp)])
 
     def get_candidate_bifurcation_points(self, xdi, vj):
         """Find the set of points that we might use to bifurcate."""
@@ -75,15 +77,19 @@ class VascularTree:
 
     def next_vascular_tree(self) -> VascularTree:
         """Make a vascular tree with an additional terminal. """
-        best_tree = None
-        while best_tree is None:
+        # TODO: We could make this a bit tidier.
+        best_bifurcation = None
+        while best_bifurcation is None:
             xdi = self.generate_next_terminal()
             reachable = self.vessels  #self.vessels_reachable_from(xdi)
             # TODO: Ignore unreachable vessels early.
             for vj in reachable:
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
-                    new_tree = self.bifurcate(vj, xj, xdi)
-                    if best_tree is None or new_tree.cost < best_tree.cost:
-                        best_tree = new_tree
-        return best_tree
+                    this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
+                    if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(best_bifurcation):
+                        best_bifurcation = this_bifurcation
+        v_old, vessel_group = best_bifurcation
+        if test_for_length_zero(vessel_group):
+            logging.warning("Vessel of length 0 created!")
+        return VascularTree([v for v in self.vessels if v is not v_old] + vessel_group.vessels, self.domain)

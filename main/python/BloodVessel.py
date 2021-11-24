@@ -6,6 +6,13 @@ import numpy as np
 from LinAlg import LineSegment, Vec2D
 
 
+def test_for_length_zero(group):
+    for v in group.vessels:
+        if v.length < 1e-15:
+            return True
+    return False
+
+
 class BloodVessel:
 
     def __init__(self, radius, proximal_point, distal_point) -> None:
@@ -76,3 +83,14 @@ class BloodVessel:
         # For the endpoints of other, we need to check the entire line, not just the line segment.
         # But we also need to be sure that other is in front of this.
         # To do this, check that the scalars are greater than 1.
+
+
+class VesselGroup:
+    """A wrapper for collections of blood vessels so that their total cost can be found easily."""
+
+    def __init__(self, vessels) -> None:
+        self.vessels = vessels
+
+    @property
+    def cost(self):
+        return sum(v.cost for v in self.vessels)
