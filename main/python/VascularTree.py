@@ -53,10 +53,10 @@ class VascularTree:
 
     def generate_next_terminal(self):
         """Generate the position of the next terminal point in the tree. """
-        def new_point():
+        def new_point():  # Get a random point in the domain.
             return self.domain.generate_point()
 
-        def valid(point: Vec2D):
+        def valid(point: Vec2D):  # Test if all vessels are sufficiently far away from the point.
             return all(v.line_seg.distance_to(point) > l_min for v in self.vessels)
 
         l_min = self.min_vessel_length
