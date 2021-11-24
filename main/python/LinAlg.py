@@ -26,6 +26,7 @@ class LineSegment:
         b = self.b
         return Vec2D(b.x - a.x, b.y - a.y)
 
+    #TODO: Improve tolerances?
     def distance_to(self, p: Vec2D):
         ab = self.vector.arr
         ap = p.arr - self.a.arr
@@ -37,7 +38,7 @@ class LineSegment:
         if param < 0:
             res = self.a.arr
         elif param > 1:
-            res = self.a.arr
+            res = self.b.arr
         else:
             res = self.a.arr + param*ab
         return np.linalg.norm(p.arr - res)

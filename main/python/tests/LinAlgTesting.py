@@ -11,6 +11,7 @@ def rn(): return random.uniform(0.0, 100.0)
 
 
 DIMS = 2
+TOL = 1e-13  # TODO: Better tolerance value?
 random.seed(1637682142)
 
 # Some values we can just grab during tests
@@ -18,6 +19,7 @@ points = [(rn(), rn()) for _ in range(1000)]
 points2 = [(rn(), rn()) for _ in range(1000)]
 vals = [random.uniform(0.0, 100.0) for _ in range(1000)]
 vals0to1 = [random.uniform(0.0, 1.0) for _ in range(1000)]
+vals1to2 = [random.uniform(1.0, 2.0) for _ in range(1000)]
 vecs = [Vec2D(rn(), rn()) for _ in range(500)]
 vecs2 = [Vec2D(rn(), rn()) for _ in range(500)]
 
@@ -117,7 +119,55 @@ class TestVec2D(unittest.TestCase):
             res = abs(v) - ans
             self.assertIsInstance(res, float)
             # TODO: Better tolerance value
-            self.assertLess(abs(res), 1e-13)
+            self.assertLess(abs(res), TOL)
+
+
+class TestLineSegment(unittest.TestCase):
+
+    def test_length_rand(self):
+        for v1, v2 in zip(vecs, vecs2):
+            seg = LineSegment(v1, v2)
+            v3 = v2 - v1
+            length = math.sqrt(v3.x ** 2 + v3.y ** 2)
+            self.assertEqual(seg.length, length)
+
+    def test_vector_rand(self):
+        for v1, v2 in zip(vecs, vecs2):
+            seg = LineSegment(v1, v2)
+            v3 = v2 - v1
+            self.assertIsNot(seg.vector, v3)
+            self.assertEqual(seg.vector, v3)
+
+    # TODO: Floating point inaccuracies. Investigate this later.
+    def test_distance_to_rand(self):
+        def generate_points(v1, v2, n1, n2):
+            x1, y1 = v1.x, v1.y
+            x2, y2 = v2.x, v2.y
+            x_diff = x2 - x1
+            y_diff = y2 - y1
+            # Find a point on the line
+            x3 = x1 + n1*x_diff
+            y3 = y1 + n1*y_diff
+            # Find a point whose closest point on the line is (x3, y3)
+            x4 = x3 + n2*y_diff
+            y4 = y3 - n2*x_diff
+            v4 = Vec2D(x4, y4)
+            dist = math.sqrt((x4-x3) ** 2 + (y4-y3) ** 2)
+            return v4, dist
+        # there are three cases:
+        for v1, v2, n1, n2 in zip(vecs, vecs2, vals0to1, vals1to2):
+            seg = LineSegment(v1, v2)
+            #   between the two endpoints.
+            v, d = generate_points(v1, v2, n1, n2)
+            self.assertLess(abs(seg.distance_to(v) - d), TOL)
+            #   or outside the leftmost one
+            v, _ = generate_points(v1, v2, -n1, n2)
+            d = math.sqrt((v.x - v1.x) ** 2 + (v.y - v1.y) ** 2)
+            self.assertLess(abs(seg.distance_to(v) - d), TOL)
+            #   or outside the rightmost one
+            v, _ = generate_points(v1, v2, 1+n1, n2)
+            d = math.sqrt((v.x - v2.x) ** 2 + (v.y - v2.y) ** 2)
+            self.assertLess(abs(seg.distance_to(v) - d), TOL)
 
 
 if __name__ == '__main__':
