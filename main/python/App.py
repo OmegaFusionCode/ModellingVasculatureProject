@@ -19,12 +19,12 @@ class App:
         tree_gen = b.generate_trees(iterations)
         self.trees = []
         for i, tr in enumerate(tree_gen):
-            logging.info(f"Starting iteration {i+1}")
+            logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
 
     def draw(self, index):
         self.surface.fill((0, 0, 0))
-        logging.info(f"Drawing state at iteration {index+1}")
+        logging.info(f"Drawing state at iteration {index + 1}")
         for v in self.trees[index].vessels:
             # print(f"Vessel with radius {v.radius} at {v.proximal_point}, {v.distal_point}")
             pg.draw.line(surface=self.surface,
@@ -45,9 +45,9 @@ class App:
                     running = False
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT and i > 0:
-                        self.draw(i := i-1)
+                        self.draw(i := i - 1)
                     if event.key == pg.K_RIGHT and i + 1 < len(self.trees):
-                        self.draw(i := i+1)
+                        self.draw(i := i + 1)
 
 
 if __name__ == '__main__':
