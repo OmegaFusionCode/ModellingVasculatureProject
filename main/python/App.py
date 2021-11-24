@@ -1,3 +1,5 @@
+import logging
+
 import pygame as pg
 
 from CCONetworkBuilder import CCONetworkBuilder
@@ -15,15 +17,13 @@ class App:
         self.builder = b = CCONetworkBuilder(1, Vec2D(40, 0), None, v)
         tree_gen = b.generate_trees(iterations)
         self.trees = []
-        print("Starting iteration ", end="")
         for i, tr in enumerate(tree_gen):
-            print(i+1, end=" ")
+            logging.info(f"Starting iteration {i+1}")
             self.trees.append(tr)
-        print()
 
     def draw(self, index):
         self.surface.fill((0, 0, 0))
-        print(f"Drawing state at iteration {index+1}")
+        logging.info(f"Drawing state at iteration {index+1}")
         for v in self.trees[index].vessels:
             # print(f"Vessel with radius {v.radius} at {v.proximal_point}, {v.distal_point}")
             pg.draw.line(surface=self.surface,
@@ -50,5 +50,8 @@ class App:
 
 
 if __name__ == '__main__':
-    app = App(65)
+    # Set up the logger and enable printing to the console.
+    logging.basicConfig(filename="app.log", level=logging.DEBUG)
+    logging.getLogger().addHandler(logging.StreamHandler())
+    app = App(500)
     app.run()

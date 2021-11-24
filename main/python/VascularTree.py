@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 from typing import List
 
@@ -62,7 +63,7 @@ class VascularTree:
         i = 0
         while not valid(p := new_point()):
             if (i := i + 1) == 10:
-                print(l_min)
+                logging.debug(f"Rescaled {l_min=}")
                 i = 0
                 l_min *= 0.5
         return p
