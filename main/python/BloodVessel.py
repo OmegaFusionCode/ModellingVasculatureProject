@@ -1,8 +1,6 @@
 from __future__ import annotations
 from math import sqrt, pi
 
-import numpy as np
-
 from LinAlg import LineSegment, Vec2D
 
 
@@ -61,10 +59,10 @@ class BloodVessel:
         return Vec2D(a.x + a_to_b.x * t,
                      a.y + a_to_b.y * t)
 
-    @staticmethod
-    def perp(a):
-        return a * np.array([[0, 1],
-                             [-1, 0]])
+    #@staticmethod
+    #def perp(a):
+    #    return a * np.array([[0, 1],
+    #                         [-1, 0]])
 
     def blocked_by(self, other: BloodVessel, p: Vec2D) -> bool:
         """p is blocked by other if the paths from p to the proximal and distal points intersect other.
