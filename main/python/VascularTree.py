@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import List
+from dataclasses import dataclass, field
+from queue import PriorityQueue
+from typing import List, Any
 
 from BloodVessel import BloodVessel, VesselGroup, test_for_length_zero
 from LinAlg import Vec2D
@@ -12,6 +14,12 @@ from VascularDomain import VascularDomain
 
 INTERVALS = 5
 RADIUS = 1
+
+
+@dataclass(order=True)
+class PrioritisedItem:
+    priority: int
+    item: Any = field(compare=False)
 
 
 class VascularTree:
@@ -81,9 +89,16 @@ class VascularTree:
         best_bifurcation = None
         while best_bifurcation is None:
             xdi = self.generate_next_terminal()
-            reachable = self.vessels  #self.vessels_reachable_from(xdi)
+            pq = PriorityQueue()
+            for v in self.vessels:
+                pq.put(PrioritisedItem(v.line_seg.distance_to(xdi), v))
+            num_vessels_to_try = round(math.sqrt(pq.qsize()))
+            # TODO: Make a priority queue of distances and only extract the first few.
+            reachable = self.vessels  # self.vessels_reachable_from(xdi)
             # TODO: Ignore unreachable vessels early.
-            for vj in reachable:
+            for _ in range(num_vessels_to_try):
+                # Get the closest blood vessel in the priority queue
+                vj = pq.get().item
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
                     this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
