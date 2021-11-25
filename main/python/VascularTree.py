@@ -11,7 +11,6 @@ from LinAlg import Vec2D
 from PointSampleHeuristic import PointSampleHeuristic
 from VascularDomain import VascularDomain
 
-
 INTERVALS = 5
 RADIUS = 1
 
@@ -50,6 +49,7 @@ class VascularTree:
         """Given an existing blood vessel vj, bifurcation point xp and terminal point xd,
         :return a VesselGroup with the new vessels resulting from bifurcation.
         """
+        # TODO: I think this should be refactored quite a bit.
         xpj = vj.proximal_point
         xdj = vj.distal_point
         return VesselGroup([BloodVessel(RADIUS, xp, xd),
@@ -93,8 +93,6 @@ class VascularTree:
             for v in self.vessels:
                 pq.put(PrioritisedItem(v.line_seg.distance_to(xdi), v))
             num_vessels_to_try = round(math.sqrt(pq.qsize()))
-            # TODO: Make a priority queue of distances and only extract the first few.
-            reachable = self.vessels  # self.vessels_reachable_from(xdi)
             # TODO: Ignore unreachable vessels early.
             for _ in range(num_vessels_to_try):
                 # Get the closest blood vessel in the priority queue
@@ -102,7 +100,8 @@ class VascularTree:
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
                     this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
-                    if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(best_bifurcation):
+                    if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(
+                            best_bifurcation):
                         best_bifurcation = this_bifurcation
         v_old, vessel_group = best_bifurcation
         if test_for_length_zero(vessel_group):
