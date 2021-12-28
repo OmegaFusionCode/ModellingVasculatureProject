@@ -1,5 +1,5 @@
 from __future__ import annotations
-from math import sqrt, pi
+from math import sqrt, pi, exp
 
 from LinAlg import LineSegment, Vec2D
 
@@ -12,6 +12,8 @@ def test_for_length_zero(group):
 
 
 class BloodVessel:
+    GAMMA = 3
+    DELTA = None
 
     def __init__(self, radius, proximal_point, distal_point) -> None:
         self.radius = radius
@@ -41,6 +43,38 @@ class BloodVessel:
     def line_seg(self):
         """The line segment that represents the position of the blood vessel. """
         return LineSegment(self.proximal_point, self.distal_point)
+
+    @property
+    def kappa(self):
+        return (self.radius / (self.radius - 5.5e-4)) ** 2
+
+    @property
+    def viscosity(self):
+        """Compute the fluid viscosity in the vessel accounting for the Fàhræus-Lindqvist effect. """
+        k = self.kappa
+        r = self.radius
+        return 1.125 * (k + k**2 * (6 * exp(-170 * r) - 2.44 * exp(-8.09 * r**0.64) + 2.2))
+
+    @property
+    def resistance(self):
+        n = self.viscosity
+        L = self.length
+        r = self.radius
+        return (8 * n * L) / (pi * r**4)
+
+    @property
+    def satisfies_murray_law(self):
+        # TODO: Implement
+        return True
+
+    @property
+    def satisfies_radius_ratio(self, other):
+        # TODO: Not used
+        return min(self.radius, other.radius) / max(self.radius, other.radius) > BloodVessel.DELTA
+
+    @property
+    def satisfies_aspect_ratio(self):
+        return self.line_seg.length / self.radius > 2
 
     def nearest_point_to(self, p: Vec2D) -> Vec2D:
         """The closest point to p on the blood vessel. """
@@ -92,3 +126,11 @@ class VesselGroup:
     @property
     def cost(self):
         return sum(v.cost for v in self.vessels)
+
+    @property
+    def satisfies_aspect_ratio(self):
+        return all(v.satisfies_aspect_ratio for v in self.vessels)
+
+    @property
+    def satisfies_geometrical_constraints(self):
+        return self.satisfies_aspect_ratio

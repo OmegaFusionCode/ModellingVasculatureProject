@@ -103,10 +103,12 @@ class VascularTree:
                 vj = pq.get().item
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
-                    this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
-                    if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(
-                            best_bifurcation):
-                        best_bifurcation = this_bifurcation
+                    b = self.bifurcate(vj, xj, xdi)
+                    if b.satisfies_geometrical_constraints:
+                        this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
+                        if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(
+                                best_bifurcation):
+                            best_bifurcation = this_bifurcation
         v_old, vessel_group = best_bifurcation
         if test_for_length_zero(vessel_group):
             logging.warning("Vessel of length 0 created!")
