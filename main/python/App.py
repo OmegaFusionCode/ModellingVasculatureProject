@@ -38,6 +38,7 @@ class App:
     def run(self):
         self.draw(i := 0)
         running = True
+        n = len(self.trees) - 1
         while running:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -46,8 +47,12 @@ class App:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT and i > 0:
                         self.draw(i := i - 1)
-                    if event.key == pg.K_RIGHT and i + 1 < len(self.trees):
+                    if event.key == pg.K_RIGHT and i < n:
                         self.draw(i := i + 1)
+                    if event.key == pg.K_DOWN:
+                        self.draw(i := 0)
+                    if event.key == pg.K_UP:
+                        self.draw(i := n)
 
 
 if __name__ == '__main__':
