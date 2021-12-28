@@ -92,9 +92,13 @@ class VascularTree:
             pq = PriorityQueue()
             for v in self.vessels:
                 pq.put(PrioritisedItem(v.line_seg.distance_to(xdi), v))
-            num_vessels_to_try = round(math.sqrt(pq.qsize()))
+            #num_vessels_to_try = max(round(math.sqrt(pq.qsize())), (pq.qsize()+1) // 2)
+            num_vessels_to_try = round(2 * math.sqrt(pq.qsize()))
+            #num_vessels_to_try = round(math.sqrt(pq.qsize()))
             # TODO: Ignore unreachable vessels early.
             for _ in range(num_vessels_to_try):
+                if pq.empty():
+                    break
                 # Get the closest blood vessel in the priority queue
                 vj = pq.get().item
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
