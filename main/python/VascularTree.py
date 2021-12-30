@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from queue import PriorityQueue
 from typing import List, Any
 
-from BloodVessel import BloodVessel, VesselGroup, test_for_length_zero
+from BloodVessel import BloodVessel, RootBloodVessel, VesselGroup, test_for_length_zero
 from LinAlg import Vec2D
 from PointSampleHeuristic import PointSampleHeuristic
 from VascularDomain import VascularDomain
@@ -52,9 +52,10 @@ class VascularTree:
         # TODO: I think this should be refactored quite a bit.
         xpj = vj.proximal_point
         xdj = vj.distal_point
-        return VesselGroup([BloodVessel(RADIUS, xp, xd),
-                            BloodVessel(RADIUS, xp, xdj),
-                            BloodVessel(RADIUS, xpj, xp)])
+        v = RootBloodVessel(RADIUS, xpj, xp)
+        v1 = RootBloodVessel(RADIUS, xp, xd)
+        v2 = RootBloodVessel(RADIUS, xp, xdj)
+        return VesselGroup([v, v1, v2])
 
     def get_candidate_bifurcation_points(self, xdi, vj):
         """Find the set of points that we might use to bifurcate."""
