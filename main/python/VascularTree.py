@@ -41,11 +41,13 @@ class VascularTree:
                 nearest = this_nearest
         return nearest
 
-    def relative_cost(self, bifurcation):
+    @staticmethod
+    def relative_cost(bifurcation):
         vj, group = bifurcation
         return group.cost - vj.cost
 
-    def bifurcate(self, vj: BloodVessel, xp, xd) -> VesselGroup:
+    @staticmethod
+    def bifurcate(vj: BloodVessel, xp, xd) -> VesselGroup:
         """Given an existing blood vessel vj, bifurcation point xp and terminal point xd,
         :return a VesselGroup with the new vessels resulting from bifurcation.
         """
@@ -104,10 +106,11 @@ class VascularTree:
                 vj = pq.get().item
                 xjs = self.get_candidate_bifurcation_points(xdi, vj)
                 for xj in xjs:
-                    b = self.bifurcate(vj, xj, xdi)
+                    b = VascularTree.bifurcate(vj, xj, xdi)
                     if b.satisfies_geometrical_constraints:
-                        this_bifurcation = vj, self.bifurcate(vj, xj, xdi)
-                        if best_bifurcation is None or self.relative_cost(this_bifurcation) < self.relative_cost(
+                        this_bifurcation = vj, VascularTree.bifurcate(vj, xj, xdi)
+                        if best_bifurcation is None \
+                                or VascularTree.relative_cost(this_bifurcation) < VascularTree.relative_cost(
                                 best_bifurcation):
                             best_bifurcation = this_bifurcation
         v_old, vessel_group = best_bifurcation
