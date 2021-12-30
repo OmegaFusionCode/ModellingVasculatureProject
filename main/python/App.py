@@ -3,22 +3,22 @@ from datetime import datetime
 
 import pygame as pg
 
-from CCONetworkBuilder import CCONetworkBuilder
+from CCONetworkMaker import CCONetworkMaker
 from LinAlg import Vec2D
-from VascularDomain import RectangularVascularDomain, CircularVascularDomain
+from VascularDomain import CircularVascularDomain
 
 
 class App:
 
-    RADIUS = 0.1
+    RADIUS = 1
 
     def __init__(self, iterations):
         pg.init()
         pg.display.set_mode((800, 800))
         self.surface = pg.display.get_surface()
         self.domain = v = CircularVascularDomain(40)
-        self.builder = b = CCONetworkBuilder(App.RADIUS, Vec2D(40, 0), None, v)
-        tree_gen = b.generate_trees(iterations)
+        self.maker = m = CCONetworkMaker(App.RADIUS, Vec2D(40, 40), None, v)
+        tree_gen = m.generate_trees(iterations)
         self.trees = []
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
@@ -26,9 +26,9 @@ class App:
 
     def draw(self, index):
         self.surface.fill((0, 0, 0))
+        pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
-        for v in self.trees[index].vessels:
-            # print(f"Vessel with radius {v.radius} at {v.proximal_point}, {v.distal_point}")
+        for v in self.trees[index].descendants:
             pg.draw.line(surface=self.surface,
                          color=(255, 0, 0),
                          start_pos=tuple(v.proximal_point * 10),
