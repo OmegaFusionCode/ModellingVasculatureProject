@@ -1,11 +1,17 @@
 import abc
 import random
 from abc import ABC
+from math import pi
 
 from LinAlg import LineSegment, Vec2D
 
 
 class VascularDomain(ABC):
+
+    @property
+    @abc.abstractmethod
+    def area(self):
+        """:returns the total area of the vascular domain. """
 
     @abc.abstractmethod
     def generate_point(self) -> Vec2D:
@@ -22,6 +28,10 @@ class RectangularVascularDomain(VascularDomain):
         self.x = x
         self.y = y
 
+    @property
+    def area(self):
+        return self.x * self.y
+
     def generate_point(self) -> Vec2D:
         i = random.uniform(0, self.x)
         j = random.uniform(0, self.y)
@@ -36,6 +46,10 @@ class CircularVascularDomain(VascularDomain):
     def __init__(self, radius):
         self.radius = radius
         self.enclosure = RectangularVascularDomain(radius*2, radius*2)
+
+    @property
+    def area(self):
+        return pi * self.radius**2
 
     def generate_point(self) -> Vec2D:
         p = self.enclosure.generate_point()
