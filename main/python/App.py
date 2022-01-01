@@ -10,14 +10,14 @@ from VascularDomain import CircularVascularDomain
 
 class App:
 
-    RADIUS = 1
+    RADIUS = 10.0
 
     def __init__(self, iterations):
         pg.init()
         pg.display.set_mode((800, 800))
         self.surface = pg.display.get_surface()
-        self.domain = v = CircularVascularDomain(40)
-        self.maker = m = CCONetworkMaker(App.RADIUS, Vec2D(40, 40), None, v)
+        self.domain = v = CircularVascularDomain(400)
+        self.maker = m = CCONetworkMaker(App.RADIUS, Vec2D(400, 0), None, v)
         tree_gen = m.generate_trees(iterations)
         self.trees = []
         for i, tr in enumerate(tree_gen):
@@ -31,8 +31,8 @@ class App:
         for v in self.trees[index].descendants:
             pg.draw.line(surface=self.surface,
                          color=(255, 0, 0),
-                         start_pos=tuple(v.proximal_point * 10),
-                         end_pos=tuple(v.distal_point * 10),
+                         start_pos=tuple(v.proximal_point),
+                         end_pos=tuple(v.distal_point),
                          width=round(v.radius),
                          )
         pg.display.flip()
