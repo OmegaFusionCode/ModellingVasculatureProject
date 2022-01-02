@@ -18,7 +18,7 @@ class CCONetworkMaker:
         """Make the first vessel of the tree to start. """
         origin = Origin(self.radius, self.initial_point)
         p = self.domain.generate_point()
-        origin.create_child(self.radius, p)
+        origin.create_child(1.0, p)
         return origin
 
     def generate_trees(self, iterations: int) -> Generator[BaseBloodVessel]:
@@ -27,16 +27,25 @@ class CCONetworkMaker:
         if iterations > 0:
             yield origin
         for _ in range(1, iterations):
-            origin = origin.copy_subtree()
             # Rescaling happens here.
             xd = self.domain.generate_point()   # Randomly select a terminal point to be connected to the tree.
             #vj, xp = CCONetworkMaker.find_bifurcation(root, self.domain)
             # TODO: Find the best bifurcation point.
             # For now, just choose any vessel.
-            vj = origin.root
-            vj.bifurcate(xd)
+            origin = origin.copy_subtree()
+            #vj = new_origin.root
+            min_c = None
+            best_vj = None
+            for vj in reversed(list(origin.descendants)):
+                vj.bifurcate(xd)
+                c = origin.root.cost
+                if min_c is None or c < min_c:
+                    min_c = c
+                    best_vj = vj
+                assert(origin.root is not vj)
+                vj.remove_bifurcation()
+            best_vj.bifurcate(xd)
             # TODO: Bifurcation
-            assert(origin.root is not vj)
             yield origin
             # TODO: Geometric Optimisation
 

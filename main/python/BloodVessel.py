@@ -20,15 +20,25 @@ class BaseBloodVessel(ABC):
 
     GAMMA = 3   # Required for Murray's Law
 
-    def __init__(self, radius, distal_point):
-        self._r = radius
+    def __init__(self, distal_point):
         self._d = distal_point
-        self._children = []
+        self._c = []
+
+    def __eq__(self, other):
+        """Two subtrees are considered 'equal' if they correspond to the same points in space. """
+        return self.radius == other.radius and \
+            self.distal_point == other.distal_point and \
+            all(c_self == c_other for c_self, c_other in zip(self.children, other.children))    \
 
     @property
+    @abstractmethod
+    def cost(self):
+        """The cost of a subtree is the volume of blood that it needs to fill it. """
+
+    @property
+    @abstractmethod
     def radius(self):
         """The radius of the vasculature. """
-        return self._r
 
     @property
     def distal_point(self):
@@ -38,7 +48,7 @@ class BaseBloodVessel(ABC):
     @property
     def children(self):
         """A list of blood vessels that are fed by this one. """
-        return self._children
+        return self._c
 
     def create_child(self, radius, distal_point):
         """Create and :return a child of this vessel with a given radius and distal point. """
@@ -49,22 +59,27 @@ class BaseBloodVessel(ABC):
     def add_child(self, child):
         """Add a direct descendant to this vessel. """
         # TODO: Enforce exactly two children.
-        self._children.append(child)
+        self._c.append(child)
 
     def remove_child(self, child):
         """Remove a child from the collection of children. """
-        self._children.remove(child)
+        self._c.remove(child)
 
     @property
     @abstractmethod
     def num_terminals(self):
         """The number of terminals that can be reached from this vessel. """
 
+    @property
+    def resistance(self):
+        """The resistance of the blood vessel according to ?????. """
+        # TODO: Needs to be in BaseBloodVessel or BloodVessel?
+        # TODO: Include actual calculation of resistance.
+        return self._r ** -4
+
+    @abstractmethod
     def rescale(self, scaling_factor):
         """Rescale this subtree according to a scaling factor. """
-        self._r *= scaling_factor
-        for c in self._children:
-            c.rescale(scaling_factor)
 
     @abstractmethod
     def copy_subtree(self):
@@ -161,11 +176,16 @@ class BaseBloodVessel(ABC):
 class Origin(BaseBloodVessel):
 
     def __init__(self, radius, distal_point) -> None:
-        super().__init__(radius, distal_point)
+        self._r = radius
+        super().__init__(distal_point)
+
+    @property
+    def radius(self):
+        return self._r
 
     @property
     def root(self):
-        return self._children[0]
+        return self._c[0]
 
     def copy_subtree(self):
         v = Origin(self.radius, self.distal_point)
@@ -184,31 +204,36 @@ class Origin(BaseBloodVessel):
         # Don't include the origin itself in the list of descendants.
         return self.root.descendants
 
+    def rescale(self, scaling_factor):
+        self._r *= scaling_factor
+
+    @property
+    def cost(self):
+        return self.root._cost_from_radius(self.radius)
+
 
 class BloodVessel(BaseBloodVessel):
 
-    def __init__(self, radius, parent, distal_point):
-        super().__init__(radius, distal_point)
-        self._parent = parent
-        self._children = []
+    def __init__(self, scale, parent, distal_point):
+        super().__init__(distal_point)
+        self._p = parent
+        self._s = scale
 
-    def __eq__(self, other):
-        # TODO: Old Version. This may not be good to keep.
-        return self.radius == other.radius and \
-               self.proximal_point == other.proximal_point and \
-               self.distal_point == other.distal_point
+    @property
+    def radius(self):
+        return self.parent.radius * self._s
 
     @property
     def proximal_point(self):
-        return self._parent.distal_point
+        return self._p.distal_point
 
     @property
     def parent(self):
-        return self._parent
+        return self._p
 
     @parent.setter
     def parent(self, p):
-        self._parent = p
+        self._p = p
 
     @property
     def descendants(self):
@@ -224,7 +249,7 @@ class BloodVessel(BaseBloodVessel):
         return self.line_seg.length
 
     def copy_subtree(self):
-        v = BloodVessel(self.radius, self.parent, self.distal_point)
+        v = BloodVessel(self._s, self.parent, self.distal_point)
         for c in self.children:
             new_c = c.copy_subtree()
             new_c.parent = v
@@ -234,7 +259,7 @@ class BloodVessel(BaseBloodVessel):
     @property
     def num_terminals(self):
         # TODO: Make this a variable that can be looked up.
-        return sum(v.num_terminals for v in self._children) if len(self._children) > 0 else 1
+        return sum(v.num_terminals for v in self._c) if len(self._c) > 0 else 1
 
     def bifurcate(self, terminal_point, bifurcation_point=None):
         """Attach a new terminal to the tree by creating a bifurcation point on this blood vessel. """
@@ -243,23 +268,47 @@ class BloodVessel(BaseBloodVessel):
         xd = self.distal_point
         g = BloodVessel.GAMMA
         nt = self.num_terminals
-        r = self.radius
+        s = self._s
         if bifurcation_point is None:
             bifurcation_point = (xp + xd) * 0.5
         # Calculate the radii of the new and existing vessels. TODO: Better estimate for resistance
-        rescaling_factor = (1 + nt**(-g/4)) ** (-1/g)
-        r_branch = r * rescaling_factor
-        r_terminal = r * (1 + nt**(g/4)) ** (-1/g)
-        assert(abs(r ** g - r_branch ** g - r_terminal ** g) < 1e-12)    # I.e. satisfies Murray's Law
-        assert(abs(r_terminal ** -4 - r_branch ** -4 * nt) < 1e-12)      # I.e. satisfies resistances
-        self.rescale(rescaling_factor)
-        # Finally, connect all the vessels together.
+        s_branch = (1 + nt ** (-g / 4)) ** (-1 / g)
+        s_terminal = (1 + nt ** (g / 4)) ** (-1 / g)
+        assert abs(1.0 - s_branch ** g - s_terminal ** g) < 1e-12  # I.e. satisfies Murray's Law
+        assert abs(s_terminal ** -4 - s_branch ** -4 * nt) < 1e-12  # I.e. satisfies resistances
+        # Finally, connect all the vessels together and re-scale.
         self.parent.remove_child(self)
-        new_parent = self.parent.create_child(r, bifurcation_point)
+        new_parent = self.parent.create_child(s, bifurcation_point)
         self.parent = new_parent
         new_parent.add_child(self)
-        new_parent.create_child(r_terminal, terminal_point)
+        new_parent.create_child(s_terminal, terminal_point)
+        self.rescale(s_branch)
 
+    def remove_bifurcation(self):
+        """Remove the bifurcation point that is at the root of this vessel. """
+        parent = self.parent
+        new_s = parent._s
+        assert isinstance(parent, BloodVessel)
+        new_parent = parent.parent
+        new_parent.remove_child(parent)
+        new_parent.add_child(self)
+        self.parent = new_parent
+        self.rescale(new_s)
+
+    def rescale(self, scaling_factor):
+        self._s = scaling_factor
+
+    @property
+    def cost(self):
+        return self._cost_from_radius(self.radius)
+
+    def _cost_from_radius(self, radius):
+        # For if we already know the radius (to avoid recomputing)
+        r = radius * self._s
+        xp, yp = self.proximal_point
+        xd, yd = self.distal_point
+        length = sqrt((xp - xd) ** 2 + (yp - yd) ** 2)
+        return pi * r**2 * length + sum(c._cost_from_radius(r) for c in self._c)
 
 #class VesselGroup:
 #        # TODO: Old Version

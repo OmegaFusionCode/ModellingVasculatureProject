@@ -54,15 +54,28 @@ class TestBloodVessel(unittest.TestCase):
         v1.create_child(0.25, Vec2D(3.5, 3.6))
         v3 = v1.create_child(0.3, Vec2D(4.5, 3.9))
         v3.create_child(0.2, Vec2D(9.9, 8.8))
+        r_copy = r.copy_subtree()
+        self.assertEqual(r, r_copy)
+        self.assertIsNot(r, r_copy)
         descendants_old = list(r.descendants)
-        descendants_new = list(r.copy_subtree().descendants)
-        #for d1, d2 in zip(descendants_old, descendants_new):
-        #    self.assertEqual(d1, d2)
+        descendants_new = list(r_copy.descendants)
+        for d1, d2 in zip(descendants_old, descendants_new):
+            self.assertEqual(d1, d2)
         for d1 in descendants_old:
             for d2 in descendants_new:
                 self.assertIsNot(d1, d2)
         self.assertEqual(len(descendants_old), 4)
         self.assertEqual(len(descendants_new), 4)
+
+    def test_remove_bifurcation(self):
+        r = Origin(1.0, Vec2D(5.0, 5.0))
+        r.create_child(1.0, Vec2D(7.5, 7.5))
+        rc = r.copy_subtree()
+        v = rc.children[0]
+        v.bifurcate(Vec2D(6.0, 7.0))
+        self.assertNotEqual(r, rc)
+        v.remove_bifurcation()
+        self.assertEqual(r, rc)
 
 
 if __name__ == '__main__':
