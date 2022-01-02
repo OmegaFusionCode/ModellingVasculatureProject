@@ -60,6 +60,12 @@ class BaseBloodVessel(ABC):
     def num_terminals(self):
         """The number of terminals that can be reached from this vessel. """
 
+    def rescale(self, scaling_factor):
+        """Rescale this subtree according to a scaling factor. """
+        self._r *= scaling_factor
+        for c in self._children:
+            c.rescale(scaling_factor)
+
     @abstractmethod
     def copy_subtree(self):
         """:returns a new vessel that is a copy of this one, and whose descendants are all copies. """
@@ -230,18 +236,29 @@ class BloodVessel(BaseBloodVessel):
         # TODO: Make this a variable that can be looked up.
         return sum(v.num_terminals for v in self._children) if len(self._children) > 0 else 1
 
-    def bifurcate(self, terminal_point):
+    def bifurcate(self, terminal_point, bifurcation_point=None):
         """Attach a new terminal to the tree by creating a bifurcation point on this blood vessel. """
+        # Get local copies of the variables that we need. (Improves readability in equations)
         xp = self.proximal_point
         xd = self.distal_point
+        g = BloodVessel.GAMMA
+        nt = self.num_terminals
+        r = self.radius
+        if bifurcation_point is None:
+            bifurcation_point = (xp + xd) * 0.5
+        # Calculate the radii of the new and existing vessels. TODO: Better estimate for resistance
+        rescaling_factor = (1 + nt**(-g/4)) ** (-1/g)
+        r_branch = r * rescaling_factor
+        r_terminal = r * (1 + nt**(g/4)) ** (-1/g)
+        assert(abs(r ** g - r_branch ** g - r_terminal ** g) < 1e-12)    # I.e. satisfies Murray's Law
+        assert(abs(r_terminal ** -4 - r_branch ** -4 * nt) < 1e-12)      # I.e. satisfies resistances
+        self.rescale(rescaling_factor)
+        # Finally, connect all the vessels together.
         self.parent.remove_child(self)
-        bifurcation_point = (xp + xd) * 0.5
-        # TODO: Compute radii
-        new_parent = self.parent.create_child(1.0, bifurcation_point)
+        new_parent = self.parent.create_child(r, bifurcation_point)
         self.parent = new_parent
         new_parent.add_child(self)
-        new_parent.create_child(1.0, terminal_point)
-
+        new_parent.create_child(r_terminal, terminal_point)
 
 
 #class VesselGroup:
