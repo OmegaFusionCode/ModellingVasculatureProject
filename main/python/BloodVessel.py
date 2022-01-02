@@ -184,7 +184,6 @@ class BloodVessel(BaseBloodVessel):
     def __init__(self, radius, parent, distal_point):
         super().__init__(radius, distal_point)
         self._parent = parent
-        #parent.add_child(self)  # TODO: Move responsibility to parent vessel.
         self._children = []
 
     def __eq__(self, other):
