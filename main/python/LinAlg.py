@@ -7,27 +7,27 @@ import numpy as np
 class LineSegment:
     """The line segment bounded by the endpoints a and b."""
 
-    def __init__(self, a, b):
+    def __init__(self, a, b) -> None:
         self.a = a
         self.b = b
         self.eqn = Line(a, (b - a))
 
     @property
-    def length(self):
+    def length(self) -> float:
         """The length of the line segment."""
         a = self.a
         b = self.b
         return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
     @property
-    def vector(self):
+    def vector(self) -> Vec2D:
         """The vector of the path from a to b."""
         a = self.a
         b = self.b
         return Vec2D(b.x - a.x, b.y - a.y)
 
-    #TODO: Improve tolerances?
-    def distance_to(self, p: Vec2D):
+    # TODO: Improve tolerances?
+    def distance_to(self, p: Vec2D) -> float:
         ab = self.vector.arr
         ap = p.arr - self.a.arr
 
@@ -44,7 +44,7 @@ class LineSegment:
         return np.linalg.norm(p.arr - res)
 
     @staticmethod
-    def on_segment(p, q, r):
+    def on_segment(p, q, r) -> bool:
         """Test if q lies in the bounding box of the line segment pr"""
         # TODO: Make this a non-static method.
         if ((q.x <= max(p.x, r.x)) and (q.x >= min(p.x, r.x)) and
@@ -53,7 +53,7 @@ class LineSegment:
         return False
 
     @staticmethod
-    def orientation(p, q, r):
+    def _orientation(p, q, r) -> int:
         """Determine the relationship between p, q and r.
         :returns 0 if p, q and r are collinear.
         :returns 1 if p, q and r are clockwise.
@@ -67,17 +67,17 @@ class LineSegment:
         else:
             return 0
 
-    def intersects_with(self, other: LineSegment):
-        """Test if this intersects with other."""
+    def intersects_with(self, other: LineSegment) -> bool:
+        """Test if 'self' intersects with 'other'."""
         p1 = self.a
         q1 = self.b
         p2 = other.a
         q2 = other.b
 
-        o1 = self.orientation(p1, q1, p2)
-        o2 = self.orientation(p1, q1, q2)
-        o3 = self.orientation(p2, q2, p1)
-        o4 = self.orientation(p2, q2, q1)
+        o1 = LineSegment._orientation(p1, q1, p2)
+        o2 = LineSegment._orientation(p1, q1, q2)
+        o3 = LineSegment._orientation(p2, q2, p1)
+        o4 = LineSegment._orientation(p2, q2, q1)
 
         if o1 != o2 and o3 != o4:
             return True
@@ -110,10 +110,10 @@ class Vec2D:
     def __iter__(self):
         return iter((self.x, self.y))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (self.arr == other.arr).all()
 
-    def __abs__(self):
+    def __abs__(self) -> float:
         return np.linalg.norm(self.arr)
 
     def __hash__(self):
@@ -123,26 +123,25 @@ class Vec2D:
         return hash(tuple(self.arr))
 
     @property
-    def x(self):
+    def x(self) -> float:
         """The x value of this vector."""
         return self.arr[0]
 
     @property
-    def y(self):
+    def y(self) -> float:
         """The y value of this vector."""
         return self.arr[1]
 
-    def __add__(self, other):
+    def __add__(self, other: Vec2D) -> Vec2D:
         return Vec2D.from_array(self.arr + other.arr)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Vec2D) -> Vec2D:
         return Vec2D.from_array(self.arr - other.arr)
 
-    def __mul__(self, other):
+    def __mul__(self, other: float) -> Vec2D:
         x = self.x * other
         y = self.y * other
         return Vec2D(x, y)
-
 
 
 # TODO: Improve the tolerance.
