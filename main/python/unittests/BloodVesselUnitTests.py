@@ -37,6 +37,8 @@ class TestBloodVessel(unittest.TestCase):
         self.assertEqual(r.root.distal_point, Vec2D(7.5, 7.5))
         self.assertEqual(r.num_terminals, 1)
         v1.bifurcate(Vec2D(6.0, 7.0))
+        self.assertIs(v1, v1.parent.children[0])
+        self.assertIsNot(v1, v1.parent.children[1])
         self.assertEqual(len(list(v1.descendants)), 1)
         self.assertEqual(len(list(r.descendants)), 3)
         self.assertEqual(len(list(r.root.descendants)), 3)

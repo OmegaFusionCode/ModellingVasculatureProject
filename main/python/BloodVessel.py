@@ -15,7 +15,6 @@ def test_for_length_zero(group):
 
 
 class BaseBloodVessel(ABC):
-
     """Parent class for the root and daughter blood vessels. """
 
     GAMMA = 3   # Required for Murray's Law
@@ -279,9 +278,11 @@ class BloodVessel(BaseBloodVessel):
         # Finally, connect all the vessels together and re-scale.
         self.parent.remove_child(self)
         new_parent = self.parent.create_child(s, bifurcation_point)
+        # This vessel is always the 0th child.
         self.parent = new_parent
         new_parent.add_child(self)
         new_parent.create_child(s_terminal, terminal_point)
+        # The new vessel is always the 1st child.
         self.rescale(s_branch)
 
     def remove_bifurcation(self):
@@ -297,6 +298,10 @@ class BloodVessel(BaseBloodVessel):
 
     def rescale(self, scaling_factor):
         self._s = scaling_factor
+
+    @property
+    def line_seg(self):
+        return LineSegment(self.proximal_point, self.distal_point)
 
     @property
     def cost(self):
