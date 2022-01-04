@@ -10,7 +10,7 @@ from VascularDomain import CircularVascularDomain
 
 class App:
 
-    RADIUS = 10.0
+    RADIUS = 20.0
 
     def __init__(self, iterations):
         pg.init()
@@ -66,5 +66,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = App(100)
+    app = App(50)
     app.run()

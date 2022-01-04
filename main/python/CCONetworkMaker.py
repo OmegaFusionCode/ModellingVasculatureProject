@@ -14,7 +14,28 @@ class CCONetworkMaker:
         self.domain = domain
         self._origin = None
 
-    def _make_first_vessel(self) -> BaseBloodVessel:
+    @property
+    def perfusion_area(self):
+        return self.domain.area
+
+    def _generate_terminal_point(self, k_term):
+        found = False
+        d_thresh = math.sqrt(self.perfusion_area / k_term)
+        logging.debug(f"{d_thresh=}")
+        i = 0
+        while not found:
+            if i == 10:
+                i = 0
+                d_thresh *= 0.9
+                logging.debug(f"Rescaled. {d_thresh=}")
+            p = self.domain.generate_point()
+            d_crit = min((v.line_seg.distance_to(p) for v in self._origin.descendants))
+            if d_crit > d_thresh:
+                found = True
+            i += 1
+        return p
+
+    def _make_first_vessel(self) -> None:
         """Make the first vessel of the tree to start. """
         self._origin = Origin(self.radius, self.initial_point)
         p = self.domain.generate_point()
@@ -25,9 +46,9 @@ class CCONetworkMaker:
         self._make_first_vessel()
         if iterations > 0:
             yield self._origin
-        for _ in range(1, iterations):
+        for i in range(1, iterations):
             # Rescaling happens here.
-            xd = self.domain.generate_point()  # Randomly select a terminal point to be connected to the tree.
+            xd = self._generate_terminal_point(i)  # Randomly select a terminal point to be connected to the tree.
             # TODO: Find the best bifurcation point.
             self._origin = self._origin.copy_subtree()
             min_c = None
