@@ -77,7 +77,7 @@ class BaseBloodVessel(ABC):
         return self._r ** -4
 
     @abstractmethod
-    def rescale(self, scaling_factor):
+    def set_scaling_factor(self, scaling_factor):
         """Rescale this subtree according to a scaling factor. """
 
     @abstractmethod
@@ -88,6 +88,10 @@ class BaseBloodVessel(ABC):
     @abstractmethod
     def descendants(self):
         """:returns all descendants of this blood vessel. """
+
+    @abstractmethod
+    def rescale(self):
+        """Recompute the scaling factors for the radii of the child vessels. """
 
     #def update_children(self, new_parent):
     #    """Change the parent of this vessel's children. """
@@ -203,12 +207,15 @@ class Origin(BaseBloodVessel):
         # Don't include the origin itself in the list of descendants.
         return self.root.descendants
 
-    def rescale(self, scaling_factor):
+    def set_scaling_factor(self, scaling_factor):
         self._r *= scaling_factor
 
     @property
     def cost(self):
         return self.root._cost_from_radius(self.radius)
+
+    def rescale(self):
+        pass
 
 
 class BloodVessel(BaseBloodVessel):
@@ -283,7 +290,8 @@ class BloodVessel(BaseBloodVessel):
         new_parent.add_child(self)
         new_parent.create_child(s_terminal, terminal_point)
         # The new vessel is always the 1st child.
-        self.rescale(s_branch)
+        self.set_scaling_factor(s_branch)
+        self.parent.rescale()
 
     def remove_bifurcation(self):
         """Remove the bifurcation point that is at the root of this vessel. """
@@ -294,10 +302,32 @@ class BloodVessel(BaseBloodVessel):
         new_parent.remove_child(parent)
         new_parent.add_child(self)
         self.parent = new_parent
-        self.rescale(new_s)
+        self.set_scaling_factor(new_s)
+        self.parent.rescale()
 
-    def rescale(self, scaling_factor):
+    def set_scaling_factor(self, scaling_factor):
         self._s = scaling_factor
+
+    def rescale(self):
+        assert len(self._c) == 2
+
+        g = BloodVessel.GAMMA
+
+        v_a = self._c[0]
+        v_b = self._c[1]
+
+        nt_a = v_a.num_terminals
+        nt_b = v_b.num_terminals
+
+        s_a = (1 + (nt_b / nt_a) ** (g/4)) ** (-1/g)
+        s_b = (1 + (nt_a / nt_b) ** (g/4)) ** (-1/g)
+
+        assert abs(1.0 - s_a ** g - s_b ** g) < 1e-12  # I.e. satisfies Murray's Law
+        assert abs(s_a ** -4 * nt_a - s_b ** -4 * nt_b) < 1e-12  # I.e. satisfies resistances
+
+        v_a.set_scaling_factor(s_a)
+        v_b.set_scaling_factor(s_b)
+        self.parent.rescale()
 
     @property
     def line_seg(self):
