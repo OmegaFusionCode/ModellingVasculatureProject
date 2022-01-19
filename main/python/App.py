@@ -27,7 +27,7 @@ class App:
             App.write_to_file(i, tr)
 
     @staticmethod
-    def write_to_file(self, identifier, tree):
+    def write_to_file(identifier, tree):
         # Store readable identifiers for each vessel
         vessel_names = {}
         for i, v in enumerate(tree.descendants):
