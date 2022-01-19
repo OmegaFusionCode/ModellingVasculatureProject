@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from math import sqrt, pi, exp
+from math import sqrt, pi
 
-from LinAlg import LineSegment, Vec2D
+from LinAlg import LineSegment
 
 
 def test_for_length_zero(group):
@@ -224,6 +224,8 @@ class BloodVessel(BaseBloodVessel):
         super().__init__(distal_point)
         self._p = parent
         self._s = scale
+        self._k_res = 0  # The resistance of the distal subtree. (Zero if there is no distal subtree)
+        self._n = 0  # The number of terminals in this vessel's subtree. TODO: Use this.
 
     @property
     def radius(self):
@@ -277,20 +279,14 @@ class BloodVessel(BaseBloodVessel):
         s = self._s
         if bifurcation_point is None:
             bifurcation_point = (xp + xd) * 0.5
-        # Calculate the radii of the new and existing vessels. TODO: Better estimate for resistance
-        s_branch = (1 + nt ** (-g / 4)) ** (-1 / g)
-        s_terminal = (1 + nt ** (g / 4)) ** (-1 / g)
-        assert abs(1.0 - s_branch ** g - s_terminal ** g) < 1e-12  # I.e. satisfies Murray's Law
-        assert abs(s_terminal ** -4 - s_branch ** -4 * nt) < 1e-12  # I.e. satisfies resistances
-        # Finally, connect all the vessels together and re-scale.
+        # Make all the vessels and connect them together. Use dummy values for the scaling factors for now.
         self.parent.remove_child(self)
-        new_parent = self.parent.create_child(s, bifurcation_point)
-        # This vessel is always the 0th child.
+        new_parent = self.parent.create_child(1.0, bifurcation_point)
         self.parent = new_parent
         new_parent.add_child(self)
-        new_parent.create_child(s_terminal, terminal_point)
-        # The new vessel is always the 1st child.
-        self.set_scaling_factor(s_branch)
+        new_parent.create_child(1.0, terminal_point)
+        # The old vessel is the 0th child
+        # The new vessel is the 1st child
         self.parent.rescale()
 
     def remove_bifurcation(self):
@@ -313,17 +309,38 @@ class BloodVessel(BaseBloodVessel):
 
         g = BloodVessel.GAMMA
 
-        v_a = self._c[0]
-        v_b = self._c[1]
+        # Get the vessels
+        v_a = self._c[0]  # After a bifurcation has been added, this will be the original vessel
+        v_b = self._c[1]  # After a bifurcation has been added, this will be the new vessel
 
+        # Get the number of terminals for each vessel
         nt_a = v_a.num_terminals
         nt_b = v_b.num_terminals
 
-        s_a = (1 + (nt_b / nt_a) ** (g/4)) ** (-1/g)
-        s_b = (1 + (nt_a / nt_b) ** (g/4)) ** (-1/g)
+        # Get the "resistance coefficients" for each distal subtree
+        k_a = v_a._k_res
+        k_b = v_b._k_res
 
-        assert abs(1.0 - s_a ** g - s_b ** g) < 1e-12  # I.e. satisfies Murray's Law
-        assert abs(s_a ** -4 * nt_a - s_b ** -4 * nt_b) < 1e-12  # I.e. satisfies resistances
+        # Get the lengths of each vessel
+        l_a = v_a.length
+        l_b = v_b.length
+
+        # Compute the full "resistance coefficients" for each vessel
+        res_a = k_a + l_a
+        res_b = k_b + l_b
+
+        # res_ratio = res_b / res_a
+        s_ratio = ((nt_b * res_b) / (nt_a * res_a)) ** (1/4)  # = s_b / s_a
+
+        s_a = (1 + s_ratio ** g) ** (-1/g)
+        s_b = (1 + s_ratio ** -g) ** (-1/g)
+
+        # We need to update the "resistance coefficients".
+
+        k_new_inv = (s_a**4 / res_a) + (s_b**4 / res_b)
+        self._k_res = 1 / k_new_inv
+
+        assert abs(1.0 - s_a ** g - s_b ** g) < 1e-13  # I.e. satisfies Murray's Law
 
         v_a.set_scaling_factor(s_a)
         v_b.set_scaling_factor(s_b)
@@ -336,6 +353,26 @@ class BloodVessel(BaseBloodVessel):
     @property
     def cost(self):
         return self._cost_from_radius(self.radius)
+
+    @property
+    def resistance(self):
+        """An approximation for the resistance of the blood vessel. """
+        return self._resistance_constant / self.radius ** 4
+
+    @property
+    def _resistance_constant(self):
+        """The "constant of proportionality" in the computation of the resistance. """
+        # TODO: Use Pouseille's Law for the resistance perhaps.
+        return self.length
+
+    def find_subtree_resistance(self):
+        """Compute the total resistance of the subtree proximal to this vessel. """
+        # 1/R = 1/R_1 + 1/R_2
+        # So find 1/R and then compute the reciprocal of that
+        res_distal = \
+            0.0 if len(self.children) == 0 \
+            else 1 / sum(1/(v.find_subtree_resistance()) for v in self.children)
+        return self.resistance + res_distal
 
     def _cost_from_radius(self, radius):
         # For if we already know the radius (to avoid recomputing)
