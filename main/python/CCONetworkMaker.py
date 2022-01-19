@@ -25,7 +25,7 @@ class CCONetworkMaker:
         logging.debug(f"{d_thresh=}")
         i = 0
         while not found:
-            if i == 10:
+            if i == 50:
                 i = 0
                 d_thresh *= 0.9
                 logging.debug(f"Rescaled. {d_thresh=}")
