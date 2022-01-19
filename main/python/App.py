@@ -1,3 +1,4 @@
+import csv
 import logging
 from datetime import datetime
 
@@ -23,6 +24,40 @@ class App:
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
+            App.write_to_file(i, tr)
+
+    @staticmethod
+    def write_to_file(self, identifier, tree):
+        # Store readable identifiers for each vessel
+        vessel_names = {}
+        for i, v in enumerate(tree.descendants):
+            vessel_names[repr(v)] = f"v{i}"
+        # A list of key-value pairs for the construction and reading of vessel dictionaries
+        vessel_maker = [
+            ("id", lambda v: vessel_names[repr(v)]),
+            ("proximal point", lambda v: v.proximal_point),
+            ("distal point", lambda v: v.distal_point),
+            ("length", lambda v: v.length),
+            ("radius", lambda v: v.radius),
+            ("scaling factor", lambda v: v._s),
+            ("resistance constant", lambda v: v._k_res),
+            ("resistance", lambda v: v.resistance),
+            ("pressure drop", lambda v: v.resistance * v.num_terminals),
+            ("parent", lambda v: vessel_names[repr(v.parent)] if v.parent is not tree else None),
+            ("number of terminals", lambda v: v.num_terminals),
+            ("left child", lambda v: vessel_names[repr(v.children[0])] if len(v.children) > 0 else None),
+            ("right child", lambda v: vessel_names[repr(v.children[1])] if len(v.children) > 0 else None),
+        ]
+        vessels = []
+        for v in tree.descendants:
+            this_vessel = {}
+            for k, f in vessel_maker:
+                this_vessel[k] = str(f(v))
+            vessels.append(this_vessel)
+        with open(f"results/results{identifier}.txt", mode="w", newline="") as f:
+            my_writer = csv.DictWriter(f, delimiter="\t", fieldnames=[t[0] for t in vessel_maker])
+            my_writer.writeheader()
+            my_writer.writerows(vessels)
 
     def draw(self, index):
         self.surface.fill((0, 0, 0))
