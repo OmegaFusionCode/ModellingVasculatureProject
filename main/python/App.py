@@ -101,5 +101,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = App(50)
+    app = App(25)
     app.run()

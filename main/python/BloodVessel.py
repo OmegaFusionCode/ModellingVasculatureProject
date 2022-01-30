@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from math import sqrt, pi
 
 from LinAlg import LineSegment
+from PointSampleHeuristic import PointSampleHeuristic
 
 
 def test_for_length_zero(group):
@@ -17,7 +18,7 @@ def test_for_length_zero(group):
 class BaseBloodVessel(ABC):
     """Parent class for the root and daughter blood vessels. """
 
-    GAMMA = 3   # Required for Murray's Law
+    GAMMA = 3  # Required for Murray's Law
 
     def __init__(self, distal_point):
         self._d = distal_point
@@ -43,6 +44,10 @@ class BaseBloodVessel(ABC):
     def distal_point(self):
         """The distal (outflow) point of the blood vessel. """
         return self._d
+
+    @distal_point.setter
+    def distal_point(self, d):
+        self._d = d
 
     @property
     def children(self):
@@ -289,6 +294,43 @@ class BloodVessel(BaseBloodVessel):
         # The new vessel is the 1st child
         self.parent.rescale()
 
+    def geometrically_optimise(self):
+        """Choose the best proximal point for this vessel. """
+        # print("Optimising: ")
+        assert not isinstance(self.parent, Origin)
+        va = self.parent
+        vb = self.parent.children[0]
+        vc = self.parent.children[1]
+        assert vb is self
+        # Find the origin. TODO: Extract to another method
+        origin = self
+        while not isinstance(origin, Origin):
+            origin = origin.parent
+        INTERVALS = 10
+        xa = va.proximal_point
+        xb = vb.distal_point
+        xc = vc.distal_point
+        sample = PointSampleHeuristic(xa, xb, xc, INTERVALS)
+        best_c = origin.cost
+        best_p = va.distal_point
+        for p in sample.points:
+            # We set the bifurcation point to be p, then rescale up to the root
+            va.distal_point = p
+            # Don't consider bifurcations that create zero-length vessels
+            if va.length == 0 or vb.length == 0 or vc.length == 0:
+                # print(f"{p} (rejected)")
+                continue
+            self.parent.rescale()
+            this_c = origin.cost
+            if this_c < best_c:
+                # print("best: ", end="")
+                best_c = this_c
+                best_p = p
+            # print(f"{p}: {this_c}")
+        va.distal_point = best_p
+        self.parent.rescale()
+        # print("Best point: {best_p}")
+
     def remove_bifurcation(self):
         """Remove the bifurcation point that is at the root of this vessel. """
         parent = self.parent
@@ -330,15 +372,15 @@ class BloodVessel(BaseBloodVessel):
         res_b = k_b + l_b
 
         # res_ratio = res_b / res_a
-        s_ratio = ((nt_b * res_b) / (nt_a * res_a)) ** (1/4)  # = s_b / s_a
+        s_ratio = ((nt_b * res_b) / (nt_a * res_a)) ** (1 / 4)  # = s_b / s_a
 
-        s_a = (1 + s_ratio ** g) ** (-1/g)
-        s_b = (1 + s_ratio ** -g) ** (-1/g)
+        s_a = (1 + s_ratio ** g) ** (-1 / g)
+        s_b = (1 + s_ratio ** -g) ** (-1 / g)
 
         # We need to update the "resistance coefficients".
 
-        k_new_inv = (s_a**4 / res_a) + (s_b**4 / res_b)
-        self._k_res = 1 / k_new_inv
+        k_new_inv = (s_a ** 4 / res_a) + (s_b ** 4 / res_b)
+        self._k_res = k_new = 1 / k_new_inv
 
         assert abs(1.0 - s_a ** g - s_b ** g) < 1e-13  # I.e. satisfies Murray's Law
 
@@ -371,7 +413,7 @@ class BloodVessel(BaseBloodVessel):
         # So find 1/R and then compute the reciprocal of that
         res_distal = \
             0.0 if len(self.children) == 0 \
-            else 1 / sum(1/(v.find_subtree_resistance()) for v in self.children)
+            else 1 / sum(1 / (v.find_subtree_resistance()) for v in self.children)
         return self.resistance + res_distal
 
     def _cost_from_radius(self, radius):
@@ -380,7 +422,7 @@ class BloodVessel(BaseBloodVessel):
         xp, yp = self.proximal_point
         xd, yd = self.distal_point
         length = sqrt((xp - xd) ** 2 + (yp - yd) ** 2)
-        return pi * r**2 * length + sum(c._cost_from_radius(r) for c in self._c)
+        return pi * r ** 2 * length + sum(c._cost_from_radius(r) for c in self._c)
 
 #class VesselGroup:
 #        # TODO: Old Version

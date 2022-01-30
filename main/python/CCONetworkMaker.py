@@ -56,9 +56,13 @@ class CCONetworkMaker:
             best_vj = None
             for vj in list(self._origin.descendants):
                 vj.bifurcate(xd)
+                vj.geometrically_optimise()
+                # The bifurcation point has been added and moved to the optimal location
                 bifurcated_vessels = vj.parent.children + [vj.parent]
                 vt = vj.parent.children[1]
                 assert len(bifurcated_vessels) == 3 and vj is bifurcated_vessels[0] and vt is bifurcated_vessels[1]
+                # Next, we check ALL THREE of the vessels involved in bifurcation for intersections with other vessels
+                # TODO: Check all three
                 intersection_found = False
                 for w in self._origin.descendants:
                     if w not in bifurcated_vessels and vt.line_seg.intersects_with(w.line_seg):
@@ -75,6 +79,9 @@ class CCONetworkMaker:
                 vj.remove_bifurcation()
             assert best_vj is not None
             best_vj.bifurcate(xd)
+            #print(best_vj.proximal_point)
+            best_vj.geometrically_optimise()
+            #print(best_vj.proximal_point)
             # TODO: Bifurcation
             yield self._origin
             # TODO: Geometric Optimisation
