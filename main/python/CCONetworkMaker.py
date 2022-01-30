@@ -62,12 +62,14 @@ class CCONetworkMaker:
                 vt = vj.parent.children[1]
                 assert len(bifurcated_vessels) == 3 and vj is bifurcated_vessels[0] and vt is bifurcated_vessels[1]
                 # Next, we check ALL THREE of the vessels involved in bifurcation for intersections with other vessels
-                # TODO: Check all three
                 intersection_found = False
-                for w in self._origin.descendants:
-                    if w not in bifurcated_vessels and vt.line_seg.intersects_with(w.line_seg):
-                        # Don't consider this bifurcation further if it intersects with other vessels
-                        intersection_found = True
+                for v in bifurcated_vessels:
+                    # Only these vessels are allowed to intersect with v. (self, parent, siblings and children)
+                    incident_vessels = [v.parent] + v.parent.children + v.children
+                    for w in self._origin.descendants:
+                        if w not in incident_vessels and v.line_seg.intersects_with(w.line_seg):
+                            # Don't consider this bifurcation further as it intersects with other vessels
+                            intersection_found = True
                 if intersection_found:
                     vj.remove_bifurcation()
                     continue
