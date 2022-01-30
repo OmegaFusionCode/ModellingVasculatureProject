@@ -79,6 +79,36 @@ class TestBloodVessel(unittest.TestCase):
         v.remove_bifurcation()
         self.assertEqual(r, rc)
 
+    def test_geometrically_optimise(self):
+        r = Origin(1.0, Vec2D(0.0, 0.0))
+        v = r.create_child(1.0, Vec2D(10.0, 0.0))
+        v.bifurcate(Vec2D(5.0, 5.0))
+        vp = v.parent
+        va = vp.children[0]
+        vb = vp.children[1]
+        self.assertIs(v, va)
+        self.assertIsNot(v, vb)
+        xp = vp.proximal_point
+        xa = va.distal_point
+        xb = vb.distal_point
+        xz = vp.distal_point
+        self.assertEqual(xp, Vec2D(0.0, 0.0))
+        self.assertEqual(xa, Vec2D(10.0, 0.0))
+        self.assertEqual(xb, Vec2D(5.0, 5.0))
+        self.assertEqual(xz, Vec2D(5.0, 0.0))
+        v.geometrically_optimise()
+        xp2 = vp.proximal_point
+        xa2 = va.distal_point
+        xb2 = vb.distal_point
+        xz2 = vp.distal_point
+        self.assertEqual(xp, xp2)
+        self.assertEqual(xa, xa2)
+        self.assertEqual(xb, xb2)
+        self.assertNotEqual(xz, xz2)
+        self.assertEqual(vp.distal_point, va.proximal_point)
+        self.assertEqual(vp.distal_point, vb
+                         .proximal_point)
+
 
 if __name__ == '__main__':
     unittest.main()
