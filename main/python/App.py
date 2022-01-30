@@ -9,6 +9,9 @@ from LinAlg import Vec2D
 from VascularDomain import CircularVascularDomain
 
 
+DRAW_RADII = True
+
+
 class App:
 
     RADIUS = 20.0
@@ -64,11 +67,12 @@ class App:
         pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
         for v in self.trees[index].descendants:
+            r = round(v.radius) if DRAW_RADII else 1
             pg.draw.line(surface=self.surface,
                          color=(255, 0, 0),
                          start_pos=tuple(v.proximal_point),
                          end_pos=tuple(v.distal_point),
-                         width=round(v.radius),
+                         width=r,
                          )
         pg.display.flip()
 
