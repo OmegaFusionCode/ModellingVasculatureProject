@@ -6,6 +6,13 @@ from BloodVessel import BaseBloodVessel, Origin, BloodVessel
 from VascularDomain import VascularDomain
 
 
+def _has_misformed_vessels(vessels):
+    for v in vessels:
+        if v.radius > v.length:
+            # Don't consider bifurcations that create a zero-length vessel.
+            return True
+
+
 class CCONetworkMaker:
 
     def __init__(self, radius, initial_point, flow, domain: VascularDomain) -> None:
@@ -59,6 +66,10 @@ class CCONetworkMaker:
                 vj.geometrically_optimise()
                 # The bifurcation point has been added and moved to the optimal location
                 bifurcated_vessels = vj.parent.children + [vj.parent]
+                # Don't consider the vessel further if it is misformed.
+                if _has_misformed_vessels(bifurcated_vessels):
+                    vj.remove_bifurcation()
+                    continue
                 vt = vj.parent.children[1]
                 assert len(bifurcated_vessels) == 3 and vj is bifurcated_vessels[0] and vt is bifurcated_vessels[1]
                 # Next, we check ALL THREE of the vessels involved in bifurcation for intersections with other vessels
