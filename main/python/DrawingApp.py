@@ -12,7 +12,7 @@ from VascularDomain import CircularVascularDomain
 DRAW_RADII = True
 
 
-class App:
+class DrawingApp:
 
     RADIUS = 20.0
 
@@ -21,13 +21,13 @@ class App:
         pg.display.set_mode((800, 800))
         self.surface = pg.display.get_surface()
         self.domain = v = CircularVascularDomain(400)
-        self.maker = m = CCONetworkMaker(App.RADIUS, Vec2D(400, 0), None, v)
+        self.maker = m = CCONetworkMaker(DrawingApp.RADIUS, Vec2D(400, 0), None, v)
         tree_gen = m.generate_trees(iterations)
         self.trees = []
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
-            App.write_to_file(i, tr)
+            DrawingApp.write_to_file(i, tr)
 
     @staticmethod
     def write_to_file(identifier, tree):
@@ -105,5 +105,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = App(25)
+    app = DrawingApp(25)
     app.run()
