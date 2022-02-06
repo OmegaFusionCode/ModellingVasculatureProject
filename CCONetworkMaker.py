@@ -66,7 +66,7 @@ class CCONetworkMaker:
                 vj.geometrically_optimise()
                 # The bifurcation point has been added and moved to the optimal location
                 bifurcated_vessels = vj.parent.children + [vj.parent]
-                # Don't consider the vessel further if it is misformed.
+                # Don't consider the vessel further if it is mis-formed.
                 if _has_misformed_vessels(bifurcated_vessels):
                     vj.remove_bifurcation()
                     continue
