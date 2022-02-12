@@ -1,6 +1,9 @@
 import logging
 import math
 from collections import Generator
+from dataclasses import dataclass, field
+from queue import PriorityQueue
+from typing import Any
 
 from BloodVessel import BaseBloodVessel, Origin, BloodVessel
 from VascularDomain import VascularDomain
@@ -11,6 +14,12 @@ def _has_misformed_vessels(vessels):
         if v.radius > v.length:
             # Don't consider bifurcations that create a zero-length vessel.
             return True
+
+
+@dataclass(order=True)
+class PrioritisedItem:
+    priority: float
+    item: Any = field(compare=False)
 
 
 class CCONetworkMaker:
@@ -60,7 +69,14 @@ class CCONetworkMaker:
             self._origin = self._origin.copy_subtree()
             min_c = None
             best_vj = None
-            for vj in list(self._origin.descendants):
+            line_distances = [PrioritisedItem(v.line_seg.distance_to(xd), v) for v in self._origin.descendants]
+            num_vessels_to_try = len(line_distances)
+            pq = PriorityQueue()
+            for pair in line_distances:
+                pq.put(pair)
+            for j in range(num_vessels_to_try):
+                assert pq.not_empty
+                vj = pq.get().item
                 # TODO: Here, we should copy the subtree with this vessel.
                 vj.bifurcate(xd)
                 vj.geometrically_optimise()
