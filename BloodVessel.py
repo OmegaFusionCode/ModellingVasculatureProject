@@ -89,6 +89,10 @@ class BaseBloodVessel(ABC):
     def copy_subtree(self):
         """:returns a new vessel that is a copy of this one, and whose descendants are all copies. """
 
+    @abstractmethod
+    def copy_whole_tree(self):
+        """:returns a new vessel that is a copy of this one in an identical tree that is a copy. """
+
     @property
     @abstractmethod
     def descendants(self):
@@ -203,6 +207,15 @@ class Origin(BaseBloodVessel):
             v.add_child(new_c)
         return v
 
+    def copy_whole_tree(self):
+        return self.copy_subtree()
+
+    def copy_as_parent(self, old, new):
+        assert self._c[0] == old
+        v = Origin(self.radius, self.distal_point)
+        new.parent = v
+        v.add_child(new)
+
     @property
     def num_terminals(self):
         return self.root.num_terminals
@@ -268,6 +281,24 @@ class BloodVessel(BaseBloodVessel):
             new_c.parent = v
             v.add_child(new_c)
         return v
+
+    def copy_whole_tree(self):
+        new_self = self.copy_subtree()
+        self.parent.copy_as_parent(self, new_self)
+        return new_self
+
+    def copy_as_parent(self, old, new):
+        # Don't return a value since we mutate new with a reference to this object
+        v = BloodVessel(self._s, self.parent, self.distal_point)
+        for c in self.children:
+            if c is not old:
+                new_c = c.copy_subtree()
+                new_c.parent = v
+                v.add_child(new_c)
+            else:
+                new.parent = v
+                v.add_child(new)
+        self.parent.copy_as_parent(self, v)
 
     @property
     def num_terminals(self):

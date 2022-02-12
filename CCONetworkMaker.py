@@ -57,11 +57,11 @@ class CCONetworkMaker:
         for i in range(1, iterations):
             # Rescaling happens here.
             xd = self._generate_terminal_point(i)  # Randomly select a terminal point to be connected to the tree.
-            # TODO: Find the best bifurcation point.
             self._origin = self._origin.copy_subtree()
             min_c = None
             best_vj = None
             for vj in list(self._origin.descendants):
+                # TODO: Here, we should copy the subtree with this vessel.
                 vj.bifurcate(xd)
                 vj.geometrically_optimise()
                 # The bifurcation point has been added and moved to the optimal location
@@ -93,9 +93,7 @@ class CCONetworkMaker:
             assert best_vj is not None
             best_vj.bifurcate(xd)
             best_vj.geometrically_optimise()
-            # TODO: Bifurcation
             yield self._origin
-            # TODO: Geometric Optimisation
 
     def run(self, terminals: int) -> BaseBloodVessel:
         """Generate the trees, returning the final one. """
