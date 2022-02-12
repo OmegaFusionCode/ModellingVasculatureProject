@@ -72,6 +72,8 @@ class CCONetworkMaker:
             self._origin = self._origin.copy_subtree()
             min_c = None
             best_vj = None
+            best_distance = None
+            best_index = None
             line_distances = [PrioritisedItem(v.line_seg.distance_to(xd), v) for v in self._origin.descendants]
             num_vessels_to_try = len(line_distances)
             pq = PriorityQueue()
@@ -79,7 +81,9 @@ class CCONetworkMaker:
                 pq.put(pair)
             for j in range(num_vessels_to_try):
                 assert pq.not_empty
-                vj = pq.get().item
+                pair = pq.get()
+                vj = pair.item
+                this_distance = pair.priority
                 # TODO: Here, we should copy the subtree with this vessel.
                 vj.bifurcate(xd)
                 vj.geometrically_optimise()
@@ -107,11 +111,15 @@ class CCONetworkMaker:
                 if min_c is None or c < min_c:
                     min_c = c
                     best_vj = vj
+                    best_distance = this_distance
+                    best_index = j
                 assert self._origin.root is not vj
                 vj.remove_bifurcation()
             assert best_vj is not None
             best_vj.bifurcate(xd)
             best_vj.geometrically_optimise()
+            self.iter_num_with_depth.append((i, best_index))
+            self.iter_num_with_dist.append((i, best_distance))
             yield self._origin
 
     def run(self, terminals: int) -> BaseBloodVessel:
