@@ -30,6 +30,9 @@ class CCONetworkMaker:
         self.flow = flow
         self.domain = domain
         self._origin = None
+        # Prepare some lists for logging purposes
+        self.iter_num_with_depth = []
+        self.iter_num_with_dist = []
 
     @property
     def perfusion_area(self):
