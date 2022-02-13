@@ -1,7 +1,7 @@
 import abc
 import random
 from abc import ABC
-from math import pi
+from math import pi, sqrt
 
 from LinAlg import LineSegment, Vec2D
 
@@ -12,6 +12,9 @@ class VascularDomain(ABC):
     @abc.abstractmethod
     def area(self):
         """:returns the total area of the vascular domain. """
+
+    def characteristic_length(self, number_of_terminals):
+        return sqrt(self.area / (number_of_terminals * pi))
 
     @abc.abstractmethod
     def point_grid(self, intervals):

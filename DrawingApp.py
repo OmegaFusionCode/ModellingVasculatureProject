@@ -1,20 +1,20 @@
 import csv
 import logging
+from collections import defaultdict
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 import pygame as pg
 
 from CCONetworkMaker import CCONetworkMaker
 from LinAlg import Vec2D
 from VascularDomain import CircularVascularDomain
 
-
 DRAW_RADII = True
 SAMPLES = 100
 
 
 class DrawingApp:
-
     RADIUS = 20.0
 
     def __init__(self, iterations):
@@ -29,8 +29,9 @@ class DrawingApp:
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
             DrawingApp.write_to_file(i, tr)
-        self.vessel_furthest_point = m.greatest_distance_from_vessel(ts[iterations-1], SAMPLES)
-        self.terminal_furthest_point = m.greatest_distance_from_terminal(ts[iterations-1], SAMPLES)
+        self.vessel_furthest_point = m.greatest_distance_from_vessel(ts[iterations - 1], SAMPLES)
+        self.terminal_furthest_point = m.greatest_distance_from_terminal(ts[iterations - 1], SAMPLES)
+        self.blackbox_counts = m.count_blackboxes(ts[iterations - 1], SAMPLES)
         logging.info(f"Vessel Furthest Point is {self.vessel_furthest_point[0]}")
         logging.info(f"Terminal Furthest Point is {self.terminal_furthest_point[0]}")
 
@@ -67,16 +68,42 @@ class DrawingApp:
             my_writer.writeheader()
             my_writer.writerows(vessels)
 
+    def graph(self):
+        # We have pairs of points and counts.
+        # We want pairs of counts and frequencies.
+        frequencies = defaultdict(int)
+        for _, n in self.blackbox_counts:
+            frequencies[n] += 1
+        # Get the range of keys in the dict
+        largest_key = max(frequencies.keys())
+        x_values = []
+        y_values = []
+        for i in range(largest_key+1):
+            x_values.append(i)
+            y_values.append(frequencies[i])
+        plt.plot(x_values, y_values)
+        plt.show()
+
     def draw(self, index):
         self.surface.fill((0, 0, 0))
         pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
+        # Draw micro-circulatory black boxes
+        for v in self.trees[index].descendants:
+            if len(v.children) == 0:  # I.e. vessel is a terminal
+                pg.draw.circle(surface=self.surface,
+                               color=(127, 0, 127),
+                               radius=round(self.domain.characteristic_length(self.trees[index].num_terminals)),
+                               center=tuple(v.distal_point),
+                               )
+        # Draw grid sample points
         for p in self.domain.point_grid(SAMPLES):
             pg.draw.circle(surface=self.surface,
                            color=(0, 0, 255),
                            radius=1,
                            center=tuple(p),
                            )
+        # Draw vessels
         for v in self.trees[index].descendants:
             r = round(v.radius) if DRAW_RADII else 1
             pg.draw.line(surface=self.surface,
@@ -111,6 +138,7 @@ class DrawingApp:
         pg.display.flip()
 
     def run(self):
+        #self.graph()
         self.draw(i := 0)
         running = True
         n = len(self.trees) - 1

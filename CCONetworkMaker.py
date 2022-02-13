@@ -150,6 +150,17 @@ class CCONetworkMaker:
 
         return max(get_smallest_distance(p) for p in self.domain.point_grid(samples))
 
+    def count_blackboxes(self, tree, samples=1000):
+        """Count the number of "micro-circulatory black boxes" reached by each point. """
+        vessels = tree.descendants
+        terminals = [v.distal_point for v in vessels if len(v.children) == 0]  # Take the vessels with no children.
+        blackbox_radius = self.domain.characteristic_length(tree.num_terminals)
+
+        def f(p):
+            return sum(1 for t in terminals if LineSegment(p, t).length <= blackbox_radius)
+
+        return ((p, f(p)) for p in self.domain.point_grid(samples))  # Pair each point with the number
+        # of micro-circulatory black boxes it reaches.
 
     def run(self, terminals: int) -> BaseBloodVessel:
         """Generate the trees, returning the final one. """
