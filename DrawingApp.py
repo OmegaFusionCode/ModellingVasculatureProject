@@ -10,11 +10,13 @@ from VascularDomain import CircularVascularDomain
 
 
 DRAW_RADII = True
+SAMPLES = 100
 
 
 class DrawingApp:
 
     RADIUS = 20.0
+    TERMINALS_NOT_VESSELS = False
 
     def __init__(self, iterations):
         pg.init()
@@ -23,11 +25,14 @@ class DrawingApp:
         self.domain = v = CircularVascularDomain(400)
         self.maker = m = CCONetworkMaker(DrawingApp.RADIUS, Vec2D(400, 0), None, v)
         tree_gen = m.generate_trees(iterations)
-        self.trees = []
+        self.trees = ts = []
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
             DrawingApp.write_to_file(i, tr)
+        self.furthest_point_tuple = \
+            m.greatest_distance_from_terminal(ts[iterations-1], SAMPLES) if self.TERMINALS_NOT_VESSELS \
+            else m.greatest_distance_from_vessel(ts[iterations-1], SAMPLES)
 
     @staticmethod
     def write_to_file(identifier, tree):
@@ -66,6 +71,12 @@ class DrawingApp:
         self.surface.fill((0, 0, 0))
         pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
+        for p in self.domain.point_grid(SAMPLES):
+            pg.draw.circle(surface=self.surface,
+                           color=(0, 0, 255),
+                           radius=1,
+                           center=tuple(p),
+                           )
         for v in self.trees[index].descendants:
             r = round(v.radius) if DRAW_RADII else 1
             pg.draw.line(surface=self.surface,
@@ -73,6 +84,31 @@ class DrawingApp:
                          start_pos=tuple(v.proximal_point),
                          end_pos=tuple(v.distal_point),
                          width=r,
+                         )
+        if self.TERMINALS_NOT_VESSELS:
+            _, t, p = self.furthest_point_tuple
+            pg.draw.circle(surface=self.surface,
+                           color=(0, 255, 0),
+                           radius=5,
+                           center=tuple(p),
+                           )
+            pg.draw.circle(surface=self.surface,
+                           color=(0, 255, 0),
+                           radius=5,
+                           center=tuple(t),
+                           )
+        else:
+            _, ps, p = self.furthest_point_tuple
+            pg.draw.circle(surface=self.surface,
+                           color=(0, 255, 0),
+                           radius=5,
+                           center=tuple(p),
+                           )
+            pg.draw.line(surface=self.surface,
+                         color=(0, 255, 0),
+                         width=1,
+                         start_pos=ps[0],
+                         end_pos=ps[1],
                          )
         pg.display.flip()
 

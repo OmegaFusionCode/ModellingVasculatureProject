@@ -14,6 +14,10 @@ class VascularDomain(ABC):
         """:returns the total area of the vascular domain. """
 
     @abc.abstractmethod
+    def point_grid(self, intervals):
+        """Generate a uniform grid of points within the domain. """
+
+    @abc.abstractmethod
     def generate_point(self) -> Vec2D:
         """Generate a random point in the domain. """
 
@@ -31,6 +35,13 @@ class RectangularVascularDomain(VascularDomain):
     @property
     def area(self):
         return self.x * self.y
+
+    def point_grid(self, s=1000):
+        for i in range(0, s):
+            for j in range(0, s):
+                x = self.x * (i / s)
+                y = self.y * (j / s)
+                yield Vec2D(x, y)
 
     def generate_point(self) -> Vec2D:
         i = random.uniform(0, self.x)
@@ -50,6 +61,9 @@ class CircularVascularDomain(VascularDomain):
     @property
     def area(self):
         return pi * self.radius**2
+
+    def point_grid(self, intervals=1000):
+        return (p for p in self.enclosure.point_grid(intervals) if self.contains(p))
 
     def generate_point(self) -> Vec2D:
         p = self.enclosure.generate_point()

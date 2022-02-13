@@ -6,6 +6,7 @@ from queue import PriorityQueue
 from typing import Any
 
 from BloodVessel import BaseBloodVessel, Origin, BloodVessel
+from LinAlg import LineSegment
 from VascularDomain import VascularDomain
 
 
@@ -121,6 +122,34 @@ class CCONetworkMaker:
             self.iter_num_with_depth.append((i, best_index))
             self.iter_num_with_dist.append((i, best_distance))
             yield self._origin
+
+    def greatest_distance_from_vessel(self, tree, samples=1000):
+        """Approximate the greatest distance from any vessel. """
+        vessels = list(tree.descendants)
+
+        def get_smallest_distance(p):
+
+            def make_tuple(v):
+                d = v.line_seg.distance_to(p)
+                ps = tuple(v.proximal_point), tuple(v.distal_point)
+                return d, ps
+
+            d, v = min(make_tuple(v) for v in vessels)
+            return d, v, p
+
+        return max(get_smallest_distance(p) for p in self.domain.point_grid(samples))
+
+    def greatest_distance_from_terminal(self, tree, samples=1000):
+        """Approximate the greatest distance from any terminal node. """
+        vessels = tree.descendants
+        terminals = [v.distal_point for v in vessels if len(v.children) == 0]  # Take the vessels with no children.
+
+        def get_smallest_distance(p):
+            d, t = min((LineSegment(p, t).length, t) for t in terminals)
+            return d, t, p
+
+        return max(get_smallest_distance(p) for p in self.domain.point_grid(samples))
+
 
     def run(self, terminals: int) -> BaseBloodVessel:
         """Generate the trees, returning the final one. """
