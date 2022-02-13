@@ -16,7 +16,6 @@ SAMPLES = 100
 class DrawingApp:
 
     RADIUS = 20.0
-    TERMINALS_NOT_VESSELS = False
 
     def __init__(self, iterations):
         pg.init()
@@ -30,9 +29,10 @@ class DrawingApp:
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
             DrawingApp.write_to_file(i, tr)
-        self.furthest_point_tuple = \
-            m.greatest_distance_from_terminal(ts[iterations-1], SAMPLES) if self.TERMINALS_NOT_VESSELS \
-            else m.greatest_distance_from_vessel(ts[iterations-1], SAMPLES)
+        self.vessel_furthest_point = m.greatest_distance_from_vessel(ts[iterations-1], SAMPLES)
+        self.terminal_furthest_point = m.greatest_distance_from_terminal(ts[iterations-1], SAMPLES)
+        logging.info(f"Vessel Furthest Point is {self.vessel_furthest_point[0]}")
+        logging.info(f"Terminal Furthest Point is {self.terminal_furthest_point[0]}")
 
     @staticmethod
     def write_to_file(identifier, tree):
@@ -85,31 +85,29 @@ class DrawingApp:
                          end_pos=tuple(v.distal_point),
                          width=r,
                          )
-        if self.TERMINALS_NOT_VESSELS:
-            _, t, p = self.furthest_point_tuple
-            pg.draw.circle(surface=self.surface,
-                           color=(0, 255, 0),
-                           radius=5,
-                           center=tuple(p),
-                           )
-            pg.draw.circle(surface=self.surface,
-                           color=(0, 255, 0),
-                           radius=5,
-                           center=tuple(t),
-                           )
-        else:
-            _, ps, p = self.furthest_point_tuple
-            pg.draw.circle(surface=self.surface,
-                           color=(0, 255, 0),
-                           radius=5,
-                           center=tuple(p),
-                           )
-            pg.draw.line(surface=self.surface,
-                         color=(0, 255, 0),
-                         width=1,
-                         start_pos=ps[0],
-                         end_pos=ps[1],
-                         )
+        _, t, p = self.terminal_furthest_point
+        pg.draw.circle(surface=self.surface,
+                       color=(0, 255, 0),
+                       radius=5,
+                       center=tuple(p),
+                       )
+        pg.draw.circle(surface=self.surface,
+                       color=(0, 255, 0),
+                       radius=5,
+                       center=tuple(t),
+                       )
+        _, ps, p = self.vessel_furthest_point
+        pg.draw.circle(surface=self.surface,
+                       color=(0, 255, 255),
+                       radius=5,
+                       center=tuple(p),
+                       )
+        pg.draw.line(surface=self.surface,
+                     color=(0, 255, 255),
+                     width=1,
+                     start_pos=ps[0],
+                     end_pos=ps[1],
+                     )
         pg.display.flip()
 
     def run(self):
