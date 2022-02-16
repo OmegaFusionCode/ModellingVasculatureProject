@@ -43,19 +43,19 @@ class DrawingApp:
             vessel_names[repr(v)] = f"v{i}"
         # A list of key-value pairs for the construction and reading of vessel dictionaries
         vessel_maker = [
-            ("id", lambda v: vessel_names[repr(v)]),
-            ("proximal point", lambda v: v.proximal_point),
-            ("distal point", lambda v: v.distal_point),
-            ("length", lambda v: v.length),
-            ("radius", lambda v: v.radius),
-            ("scaling factor", lambda v: v._s),
-            ("resistance constant", lambda v: v._k_res),
-            ("resistance", lambda v: v.resistance),
-            ("pressure drop", lambda v: v.resistance * v.num_terminals),
-            ("parent", lambda v: vessel_names[repr(v.parent)] if v.parent is not tree else None),
-            ("number of terminals", lambda v: v.num_terminals),
-            ("left child", lambda v: vessel_names[repr(v.children[0])] if len(v.children) > 0 else None),
-            ("right child", lambda v: vessel_names[repr(v.children[1])] if len(v.children) > 0 else None),
+            ("id", lambda x: vessel_names[repr(x)]),
+            ("proximal point", lambda x: x.proximal_point),
+            ("distal point", lambda x: x.distal_point),
+            ("length", lambda x: x.length),
+            ("radius", lambda x: x.radius),
+            ("scaling factor", lambda x: x._s),
+            ("resistance constant", lambda x: x._k_res),
+            ("resistance", lambda x: x.resistance),
+            ("pressure drop", lambda x: x.resistance * x.num_terminals),
+            ("parent", lambda x: vessel_names[repr(x.parent)] if x.parent is not tree else None),
+            ("number of terminals", lambda x: x.num_terminals),
+            ("left child", lambda x: vessel_names[repr(x.children[0])] if len(x.children) > 0 else None),
+            ("right child", lambda x: vessel_names[repr(x.children[1])] if len(x.children) > 0 else None),
         ]
         vessels = []
         for v in tree.descendants:

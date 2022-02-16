@@ -414,7 +414,7 @@ class BloodVessel(BaseBloodVessel):
         self._k_res = k_new = 1 / k_new_inv
 
         assert abs(1.0 - s_a ** g - s_b ** g) < 1e-13  # I.e. satisfies Murray's Law
-        assert abs(res_a * nt_a * s_a ** -4 - res_b * nt_b * s_b ** -4) < 1e-10  # I.e. parallel pressures are equal
+        #assert abs(res_a * nt_a * s_a ** -4 - res_b * nt_b * s_b ** -4) < 1e-10  # I.e. parallel pressures are equal
         assert abs((self.length + k_new) * (nt_a + nt_b)
                    - self.length * (nt_a + nt_b)
                    - res_a * nt_a * s_a ** -4) < 1e-10  # I.e. pressure drops are consistent
