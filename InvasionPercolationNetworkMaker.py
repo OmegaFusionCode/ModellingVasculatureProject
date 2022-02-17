@@ -12,6 +12,7 @@ class Cell:
         self.j = j
         self.discovered = -1
         self.reached = -1
+        self.edges = []
 
     def __lt__(self, other):
         return self.c < other.c
@@ -23,6 +24,15 @@ class Cell:
     @property
     def is_reached(self):
         return self.reached != -1
+
+
+class Edge:
+
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+        a.edges.append(self)
+        b.edges.append(self)
 
 
 class InvasionPercolationNetworkMaker:
@@ -56,11 +66,18 @@ class InvasionPercolationNetworkMaker:
                 c.discovered = t
                 q.put(c)
 
+    def _add_edges(self, cells, a, edges):
+        for b in cells:
+            if b.is_reached:
+                e = Edge(a, b)
+                edges.append(e)
+
     def make_network(self):
         q = PriorityQueue()
         caps = self._generate_random_capacities()
         # Put in the queue each capacity along with its coordinates.
         cells = [[Cell(v, i, j) for j, v in enumerate(row)] for i, row in enumerate(caps)]
+        edges = []
         # Some cells are initially discovered.
         start = cells[0][0]
         start.reached = 0
@@ -77,12 +94,13 @@ class InvasionPercolationNetworkMaker:
             assert cell.is_reached
             neighbours = self._get_cell_neighbours(cells, cell)
             self._discover_cells(neighbours, t, q)
-
-        return [[True if c.is_reached else False for c in row] for row in cells]
-
+            self._add_edges(neighbours, cell, edges)
+        return cells, edges
+        #return [[True if c.is_reached else False for c in row] for row in cells]
 
 
 if __name__ == "__main__":
     m = InvasionPercolationNetworkMaker(10, 10, 0.5)
-    network = m.make_network()
-    print(np.array(network))
+    cells, _ = m.make_network()
+    a = [[True if c.is_reached else False for c in row] for row in cells]
+    print(np.array(a))
