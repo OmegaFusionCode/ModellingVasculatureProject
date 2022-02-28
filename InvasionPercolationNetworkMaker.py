@@ -138,6 +138,28 @@ class InvasionPercolationNetworkMaker:
                     q.put(v)
         return backrefs
 
+    def find_most_distant_point(self, cells):
+        pq = PriorityQueue()
+        added = [[False for _ in row] for row in cells]
+
+        def add_cell_neighbours(distance, cell):
+            for next_cell in self._get_cell_neighbours(cells, cell):
+                if not added[next_cell.i][next_cell.j]:
+                    pq.put((distance + 1, next_cell))
+                    added[next_cell.i][next_cell.j] = True
+
+        furthest = None
+        for row in cells:
+            for c in row:
+                if c.is_reached:
+                    added[c.i][c.j] = True
+                    add_cell_neighbours(0, c)
+        while not pq.empty():
+            d, c = pq.get()
+            furthest = d, c
+            add_cell_neighbours(d, c)
+        return furthest
+
 
 def main():
     m = InvasionPercolationNetworkMaker(10, 10, 0.3)

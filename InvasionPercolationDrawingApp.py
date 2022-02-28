@@ -4,7 +4,7 @@ from InvasionPercolationNetworkMaker import InvasionPercolationNetworkMaker
 
 
 class InvasionPercolationDrawingApp:
-    INTERVAL = 100
+    INTERVAL = 10
 
     def __init__(self, x, y, occ):
         self.x = x
@@ -23,6 +23,9 @@ class InvasionPercolationDrawingApp:
         while curr is not self.top_left:
             curr, e = a[curr.i][curr.j]
             self.shortest_path_edges.append(e)
+        self.remote_distance, self.remote_cell = m.find_most_distant_point(cells)
+        print(self.remote_distance)
+        print(self.remote_cell.i, self.remote_cell.j)
 
     def get_coords(self, a):
         x_coord = self.INTERVAL // 2 + a.i * self.INTERVAL
@@ -30,16 +33,21 @@ class InvasionPercolationDrawingApp:
         return x_coord, y_coord
 
     def draw(self):
-        for c in self.failures_top_left + self.failures_bottom_right:
-            pg.draw.circle(surface=self.surface,
-                           color=(255, 255, 0),
-                           radius=self.INTERVAL // 2,
-                           center=self.get_coords(c))
-        for c in [self.top_left, self.bottom_right]:
-            pg.draw.circle(surface=self.surface,
-                           color=(255, 0, 255),
-                           radius=self.INTERVAL // 2,
-                           center=self.get_coords(c))
+        #for c in self.failures_top_left + self.failures_bottom_right:
+        #    pg.draw.circle(surface=self.surface,
+        #                   color=(255, 255, 0),
+        #                   radius=self.INTERVAL // 2,
+        #                   center=self.get_coords(c))
+        #for c in [self.top_left, self.bottom_right]:
+        #    pg.draw.circle(surface=self.surface,
+        #                   color=(255, 0, 255),
+        #                   radius=self.INTERVAL // 2,
+        #                   center=self.get_coords(c))
+        # Geometrically Most Remote Point
+        pg.draw.circle(surface=self.surface,
+                       color=(255, 0, 255),
+                       radius=self.INTERVAL // 2,
+                       center=self.get_coords(self.remote_cell))
         for e in self.edges:
             pg.draw.line(surface=self.surface,
                          color=(255, 0, 0),
@@ -65,5 +73,5 @@ class InvasionPercolationDrawingApp:
 
 
 if __name__ == "__main__":
-    app = InvasionPercolationDrawingApp(10, 10, 0.55)
+    app = InvasionPercolationDrawingApp(50, 50, 0.55)
     app.run()
