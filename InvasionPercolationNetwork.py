@@ -35,72 +35,82 @@ class Edge:
         b.edges.append(self)
 
 
-class InvasionPercolationNetworkMaker:
+class InvasionPercolationNetwork:
 
     def __init__(self, x: int, y: int, occupancy: float):
         assert 0.0 <= occupancy <= 1.0
         self.x = x
         self.y = y
         self.n = round(x * y * occupancy)
+        self._cells = None
+        self._edges = None
+        self._q = None
+        self._make_network()
+
+    @property
+    def cells(self):
+        return self._cells
+
+    @property
+    def edges(self):
+        return self._edges
 
     def _generate_random_capacities(self):
         return [[random() for _ in range(self.y)] for _ in range(self.x)]
 
-    def _get_cell_neighbours(self, cells, c):
+    def _get_cell_neighbours(self, c):
         i, j = c.i, c.j
         neighbours = []
         if i > 0:
-            neighbours.append(cells[i - 1][j])
+            neighbours.append(self.cells[i - 1][j])
         if i < self.x - 1:
-            neighbours.append(cells[i + 1][j])
+            neighbours.append(self.cells[i + 1][j])
         if j > 0:
-            neighbours.append(cells[i][j - 1])
+            neighbours.append(self.cells[i][j - 1])
         if j < self.x - 1:
-            neighbours.append(cells[i][j + 1])
+            neighbours.append(self.cells[i][j + 1])
         return neighbours
 
-    @staticmethod
-    def _discover_cells(cs, t, q):
+    def _discover_cells(self, cs, t):
         for c in cs:
             if not c.is_discovered:
                 c.discovered = t
-                q.put(c)
+                self._q.put(c)
 
-    def _add_edges(self, cells, a, edges):
+    def _add_edges(self, cells, a):
         assert a.is_reached
         for b in cells:
             if b.is_reached:
                 e = Edge(a, b)
-                edges.append(e)
+                self._edges.append(e)
 
-    def _initially_discover(self, cells, i, j, q):
-        c = cells[i][j]
+    def _initially_discover(self, i, j):
+        c = self._cells[i][j]
         c.reached = 0
         c.discovered = 0
         # Neighbours must be added to the queue properly.
-        ns = self._get_cell_neighbours(cells, c)
-        self._discover_cells(ns, 0, q)
+        ns = self._get_cell_neighbours(c)
+        self._discover_cells(ns, 0)
 
-    def make_network(self):
-        q = PriorityQueue()
+    def _make_network(self):
+        self._q = PriorityQueue()
         caps = self._generate_random_capacities()
         # Put in the queue each capacity along with its coordinates.
-        cells = [[Cell(v, i, j) for j, v in enumerate(row)] for i, row in enumerate(caps)]
-        edges = []
+        self._cells = [[Cell(v, i, j) for j, v in enumerate(row)] for i, row in enumerate(caps)]
+        self._edges = []
         # Some cells are initially discovered.
-        self._initially_discover(cells, self.x // 2, self.y // 2, q)
+        self._initially_discover(self.x // 2, self.y // 2)
         # self._initially_discover(cells, self.x-1, self.y-1, q)
 
         for t in range(1, self.n + 1):
-            cell = q.get()
+            cell = self._q.get()
             assert cell.is_discovered
             assert not cell.is_reached
             cell.reached = t
             assert cell.is_reached
-            neighbours = self._get_cell_neighbours(cells, cell)
-            self._discover_cells(neighbours, t, q)
-            self._add_edges(neighbours, cell, edges)
-        return cells, edges
+            neighbours = self._get_cell_neighbours(cell)
+            self._discover_cells(neighbours, t)
+            self._add_edges(neighbours, cell)
 
     def find_top_left(self, cells):
         # TODO: Currently only works on square networks!
@@ -152,7 +162,7 @@ class InvasionPercolationNetworkMaker:
         # cells_to_expand now contains all cells
         while len(cells_to_expand) > 0:
             c = cells_to_expand.pop()
-            ns = [n for n in self._get_cell_neighbours(cells, c) if n.is_reached]
+            ns = [n for n in self._get_cell_neighbours(c) if n.is_reached]
             if len(ns) == 1:   # Then it is a dead end
                 print("Reached!")
                 not_dead_end[c.i][c.j] = None  # Don't include the cell at this position
@@ -164,7 +174,7 @@ class InvasionPercolationNetworkMaker:
         added = [[False for _ in row] for row in cells]
 
         def add_cell_neighbours(distance, cell):
-            for next_cell in self._get_cell_neighbours(cells, cell):
+            for next_cell in self._get_cell_neighbours(cell):
                 if not added[next_cell.i][next_cell.j]:
                     pq.put((distance + 1, next_cell))
                     added[next_cell.i][next_cell.j] = True
@@ -183,7 +193,7 @@ class InvasionPercolationNetworkMaker:
 
 
 def main():
-    m = InvasionPercolationNetworkMaker(10, 10, 0.3)
+    m = InvasionPercolationNetwork(10, 10, 0.3)
     cells, _ = m.make_network()
     a = [[True if c.is_reached else False for c in row] for row in cells]
     print(np.array(a))

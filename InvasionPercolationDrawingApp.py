@@ -1,6 +1,6 @@
 import pygame as pg
 
-from InvasionPercolationNetworkMaker import InvasionPercolationNetworkMaker
+from InvasionPercolationNetwork import InvasionPercolationNetwork
 
 
 class InvasionPercolationDrawingApp:
@@ -12,21 +12,20 @@ class InvasionPercolationDrawingApp:
         self.occ = occ
         pg.display.set_mode((x * self.INTERVAL, y * self.INTERVAL))
         self.surface = pg.display.get_surface()
-        self.maker = m = InvasionPercolationNetworkMaker(x, y, occ)
-        cells, self.edges = m.make_network()
-        self.failures_top_left, self.top_left = m.find_top_left(cells)
-        self.failures_bottom_right, self.bottom_right = m.find_bottom_right(cells)
-        a = m.bfs(self.top_left)
+        self.network = net = InvasionPercolationNetwork(x, y, occ)
+        self.failures_top_left, self.top_left = net.find_top_left(net.cells)
+        self.failures_bottom_right, self.bottom_right = net.find_bottom_right(net.cells)
+        a = net.bfs(self.top_left)
         print("Reached")
         self.shortest_path_edges = []
         curr = self.bottom_right
         while curr is not self.top_left:
             curr, e = a[curr.i][curr.j]
             self.shortest_path_edges.append(e)
-        self.remote_distance, self.remote_cell = m.find_most_distant_point(cells)
+        self.remote_distance, self.remote_cell = net.find_most_distant_point(net.cells)
         print(self.remote_distance)
         print(self.remote_cell.i, self.remote_cell.j)
-        self.not_dead_end = m.remove_dead_ends(cells)
+        self.not_dead_end = net.remove_dead_ends(net.cells)
 
 
     def get_coords(self, a):
@@ -58,7 +57,7 @@ class InvasionPercolationDrawingApp:
                        color=(255, 0, 255),
                        radius=self.INTERVAL // 2,
                        center=self.get_coords(self.remote_cell))
-        for e in self.edges:
+        for e in self.network.edges:
             pg.draw.line(surface=self.surface,
                          color=(255, 0, 0),
                          width=self.INTERVAL // 5,
