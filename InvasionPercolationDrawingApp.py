@@ -4,7 +4,7 @@ from InvasionPercolationNetworkMaker import InvasionPercolationNetworkMaker
 
 
 class InvasionPercolationDrawingApp:
-    INTERVAL = 10
+    INTERVAL = 25
 
     def __init__(self, x, y, occ):
         self.x = x
@@ -26,6 +26,8 @@ class InvasionPercolationDrawingApp:
         self.remote_distance, self.remote_cell = m.find_most_distant_point(cells)
         print(self.remote_distance)
         print(self.remote_cell.i, self.remote_cell.j)
+        self.not_dead_end = m.remove_dead_ends(cells)
+
 
     def get_coords(self, a):
         x_coord = self.INTERVAL // 2 + a.i * self.INTERVAL
@@ -44,6 +46,14 @@ class InvasionPercolationDrawingApp:
         #                   radius=self.INTERVAL // 2,
         #                   center=self.get_coords(c))
         # Geometrically Most Remote Point
+        for i, row in enumerate(self.not_dead_end):
+            for j, c in enumerate(row):
+                if c is not None:
+                    pg.draw.circle(surface=self.surface,
+                                   color=(255, 255, 0),
+                                   radius=self.INTERVAL // 2,
+                                   center=self.get_coords(c))
+
         pg.draw.circle(surface=self.surface,
                        color=(255, 0, 255),
                        radius=self.INTERVAL // 2,
@@ -73,5 +83,5 @@ class InvasionPercolationDrawingApp:
 
 
 if __name__ == "__main__":
-    app = InvasionPercolationDrawingApp(50, 50, 0.55)
+    app = InvasionPercolationDrawingApp(20, 20, 0.55)
     app.run()

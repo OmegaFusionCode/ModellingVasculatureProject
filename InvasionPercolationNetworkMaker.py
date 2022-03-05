@@ -138,6 +138,27 @@ class InvasionPercolationNetworkMaker:
                     q.put(v)
         return backrefs
 
+    def remove_dead_ends(self, cells):
+        # TODO: Make a real cell not a dummy cell
+        not_dead_end = [[c for c in row] for row in cells]     # Copy cells
+        for i, row in enumerate(cells):
+            for j, c in enumerate(row):
+                if not c.is_reached:
+                    not_dead_end[c.i][c.j] = None
+        cells_to_expand = set()
+        for row in cells:
+            for c in row:
+                cells_to_expand.add(c)
+        # cells_to_expand now contains all cells
+        while len(cells_to_expand) > 0:
+            c = cells_to_expand.pop()
+            ns = [n for n in self._get_cell_neighbours(cells, c) if n.is_reached]
+            if len(ns) == 1:   # Then it is a dead end
+                print("Reached!")
+                not_dead_end[c.i][c.j] = None  # Don't include the cell at this position
+                cells_to_expand.add(ns[0])
+        return not_dead_end
+
     def find_most_distant_point(self, cells):
         pq = PriorityQueue()
         added = [[False for _ in row] for row in cells]
