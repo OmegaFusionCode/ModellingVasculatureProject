@@ -14,7 +14,7 @@ DRAW_RADII = True
 SAMPLES = 100
 
 
-class DrawingApp:
+class CCODrawingApp:
     RADIUS = 20.0
 
     def __init__(self, iterations):
@@ -22,13 +22,13 @@ class DrawingApp:
         pg.display.set_mode((800, 800))
         self.surface = pg.display.get_surface()
         self.domain = v = CircularVascularDomain(400)
-        self.maker = m = CCONetworkMaker(DrawingApp.RADIUS, Vec2D(400, 0), None, v)
+        self.maker = m = CCONetworkMaker(CCODrawingApp.RADIUS, Vec2D(400, 0), None, v)
         tree_gen = m.generate_trees(iterations)
         self.trees = ts = []
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
-            DrawingApp.write_to_file(i, tr)
+            CCODrawingApp.write_to_file(i, tr)
         self.vessel_furthest_point = m.greatest_distance_from_vessel(ts[iterations - 1], SAMPLES)
         self.terminal_furthest_point = m.greatest_distance_from_terminal(ts[iterations - 1], SAMPLES)
         self.blackbox_counts = m.count_blackboxes(ts[iterations - 1], SAMPLES)
@@ -167,5 +167,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = DrawingApp(25)
+    app = CCODrawingApp(55)
     app.run()
