@@ -12,6 +12,7 @@ from VascularDomain import CircularVascularDomain
 
 DRAW_RADII = True
 SAMPLES = 100
+GLOBAL_RADIUS = 400
 
 
 class CCODrawingApp:
@@ -19,9 +20,9 @@ class CCODrawingApp:
 
     def __init__(self, iterations):
         pg.init()
-        pg.display.set_mode((800, 800))
+        pg.display.set_mode((GLOBAL_RADIUS*2, GLOBAL_RADIUS*2))
         self.surface = pg.display.get_surface()
-        self.domain = v = CircularVascularDomain(400)
+        self.domain = v = CircularVascularDomain(GLOBAL_RADIUS)
         self.maker = m = CCONetworkMaker(CCODrawingApp.RADIUS, Vec2D(400, 0), None, v)
         tree_gen = m.generate_trees(iterations)
         self.trees = ts = []
@@ -84,24 +85,30 @@ class CCODrawingApp:
         plt.plot(x_values, y_values)
         plt.show()
 
+    def _draw_circles(self, points, radius, colour):
+        for p in points:
+            pg.draw.circle(surface=self.surface,
+                           color=colour,
+                           radius=radius,
+                           center=tuple(p),
+                           )
+
     def draw(self, index):
         self.surface.fill((0, 0, 0))
         pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
         # Draw micro-circulatory black boxes
-        for v in self.trees[index].descendants:
-            if len(v.children) == 0:  # I.e. vessel is a terminal
-                pg.draw.circle(surface=self.surface,
-                               color=(127, 0, 127),
-                               radius=round(self.domain.characteristic_length(self.trees[index].num_terminals)),
-                               center=tuple(v.distal_point),
-                               )
+        #for v in self.trees[index].descendants:
+        #    if len(v.children) == 0:  # I.e. vessel is a terminal
+        #        pg.draw.circle(surface=self.surface,
+        #                       color=(127, 0, 127),
+        #                       radius=round(self.domain.characteristic_length(self.trees[index].num_terminals)),
+        #                       center=tuple(v.distal_point),
+        #                       )
         # Draw grid sample points
-        for p in self.domain.point_grid(SAMPLES):
-            pg.draw.circle(surface=self.surface,
-                           color=(0, 0, 255),
-                           radius=1,
-                           center=tuple(p),
+        self._draw_circles(self.domain.point_grid(SAMPLES),
+                           1,
+                           (0, 0, 255)
                            )
         # Draw vessels
         for v in self.trees[index].descendants:
@@ -113,22 +120,13 @@ class CCODrawingApp:
                          width=r,
                          )
         _, t, p = self.terminal_furthest_point
-        pg.draw.circle(surface=self.surface,
-                       color=(0, 255, 0),
-                       radius=5,
-                       center=tuple(p),
-                       )
-        pg.draw.circle(surface=self.surface,
-                       color=(0, 255, 0),
-                       radius=5,
-                       center=tuple(t),
-                       )
+        self._draw_circles((p, t),
+                           radius=5,
+                           colour=(0, 255, 0))
         _, ps, p = self.vessel_furthest_point
-        pg.draw.circle(surface=self.surface,
-                       color=(0, 255, 255),
-                       radius=5,
-                       center=tuple(p),
-                       )
+        self._draw_circles((p,),
+                           radius=5,
+                           colour=(0, 255, 255))
         pg.draw.line(surface=self.surface,
                      color=(0, 255, 255),
                      width=1,
