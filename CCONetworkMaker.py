@@ -124,12 +124,14 @@ class CCONetworkMaker:
             yield self._origin
 
     def greatest_distance_from_vessel(self, tree, samples=1000):
-        """Approximate the greatest distance from any vessel. """
+        """Approximate the greatest distance from any vessel.
+         :returns the greatest distance, and the vessel and point that are involved. """
         vessels = list(tree.descendants)
 
         def get_smallest_distance(p):
 
             def make_tuple(v):
+                # Contains the distance to the vessel, and the endpoints of the vessel.
                 d = v.line_seg.distance_to(p)
                 ps = tuple(v.proximal_point), tuple(v.distal_point)
                 return d, ps

@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 
-from DrawingApp import DrawingApp
+from CCODrawingApp import CCODrawingApp
 
 
 class CliApp:
@@ -12,7 +12,7 @@ class CliApp:
     def make_drawer(self):
         try:
             iters = int(input("Please enter number of iterations: "))
-            self.drawer = DrawingApp(iters)
+            self.drawer = CCODrawingApp(iters)
         except TypeError:
             print("Invalid value entered. Aborting...")
 

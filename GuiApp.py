@@ -4,7 +4,7 @@ from threading import Thread
 
 import time
 
-from DrawingApp import DrawingApp
+from CCODrawingApp import CCODrawingApp
 
 
 #class AppRunner(Thread):
@@ -21,7 +21,7 @@ class AsyncButtonClick(Thread):
 
     def __init__(self, iterations):
         super().__init__()
-        self.drawing_app = DrawingApp(iterations)
+        self.drawing_app = CCODrawingApp(iterations)
 
     def run(self):
         print("Clicked!")

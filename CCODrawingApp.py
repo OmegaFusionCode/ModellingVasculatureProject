@@ -154,6 +154,9 @@ class CCODrawingApp:
                         self.draw(i := 0)
                     if event.key == pg.K_UP:
                         self.draw(i := n)
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        print(pg.mouse.get_pos())
 
 
 if __name__ == '__main__':
