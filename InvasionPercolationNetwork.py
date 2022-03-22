@@ -192,6 +192,9 @@ class InvasionPercolationNetwork:
         return backrefs
 
     def remove_dead_ends(self):
+        """Remove the dead ends from the network.
+        :returns a list of the edges after the dead ends have been removed.
+        """
 
         source = self.top_left
         sink = self.bottom_right
@@ -206,17 +209,14 @@ class InvasionPercolationNetwork:
             discovered = {c: False for c in concat(self._cells)}
             discovered[start] = True
             s.put(start)
-            #print(f"{start.i} {start.j} ", end="")
             while not s.empty():
                 u = s.get()
                 if u is source or u is sink:
-                    #print("found")
                     return True
                 for v in adj[u]:
                     if v is not no_visit and not discovered[v]:
                         discovered[v] = True
                         s.put(v)
-            #print("not found")
             return False
 
         def delete_scc_conditional(start, no_visit):
@@ -232,46 +232,12 @@ class InvasionPercolationNetwork:
                             s.put(v)
 
         for e in self._edges:
-            #print(f"({e.a.i},{e.a.j}) ({e.b.i},{e.b.j}) ", end="")
             if not deleted[e]:
-                #print("not deleted ", end="")
                 delete_scc_conditional(e.a, e.b)
                 delete_scc_conditional(e.b, e.a)
-                #if not can_find(e.a, e.b):
-                #    # We need to delete this strongly connected component.
-                #    print("\tdeleting left ")
-                #    s = LifoQueue()
-                #    nodes_deleted[e.a] = True
-                #    s.put(e.a)
-                #    while not s.empty():
-                #        u = s.get()
-#
-                #        for uv in u.edges:
-                #            v = uv.other(u)
-                #            print(f"\t({uv.a.i}, {uv.a.j}), ({uv.b.i}, {uv.b.j})")
-                #            # If this edge hasn't been deleted yet, delete it and delete its subgraph.
-                #            if v is not e.a and uv is not e and not deleted[uv]:
-                #                deleted[uv] = True
-                #                s.put(uv.other(u))
-                #if not can_find(e.b, e.a):
-                #    # We need to delete this strongly connected component.
-                #    s = LifoQueue()
-                #    s.put(e.b)
-                #    while not s.empty():
-                #        print("deleting right ", end="")
-                #        u = s.get()
-                #        for uv in u.edges:
-                #            v = uv.other(u)
-                #            # If this edge hasn't been deleted yet, delete it and delete its subgraph.
-                #            if v is not e.a and uv is not e and not deleted[uv]:
-                #                deleted[uv] = True
-                #                s.put(uv.other(u))
-                #print("")
-            #else:
-                #print("deleted")
 
+        # Return the edges.
         return [e for e in self._edges if not nodes_deleted[e.a] and not nodes_deleted[e.b]]
-        #return [e for e in self._edges if not deleted[e]]
 
 
     @property
