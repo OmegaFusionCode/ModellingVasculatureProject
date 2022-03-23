@@ -37,6 +37,7 @@ class CCONetworkMaker:
 
     @property
     def perfusion_area(self):
+        """:returns the size of the 2D perfusion region. """
         return self.domain.area
 
     def _generate_terminal_point(self, k_term):
@@ -63,7 +64,7 @@ class CCONetworkMaker:
         self._origin.create_child(1.0, p)
 
     def generate_trees(self, iterations: int) -> Generator[BaseBloodVessel]:
-        """A generator to produce the trees at all stages. """
+        """Make a generator for the trees at each stage, and :return it. """
         self._make_first_vessel()
         if iterations > 0:
             yield self._origin
@@ -123,13 +124,28 @@ class CCONetworkMaker:
             self.iter_num_with_dist.append((i, best_distance))
             yield self._origin
 
+    def distance_from_vessel(self, tree, point):
+        """Approximate the smallest distance from this point to another vessel.
+        :returns the distance, and the endpoints of the vessel involved.
+        """
+        vessels = list(tree.descendants)
+
+        def make_tuple(v):
+            # Contains the distance to the vessel, and the endpoints of the vessel.
+            d = v.line_seg.distance_to(point)
+            ps = tuple(v.proximal_point), tuple(v.distal_point)
+            return d, ps
+
+        # The distance to the nearest vessel.
+        return min(make_tuple(v) for v in vessels)
+
     def greatest_distance_from_vessel(self, tree, samples=1000):
         """Approximate the greatest distance from any vessel.
-         :returns the greatest distance, and the vessel and point that are involved. """
+         :returns the greatest distance, and the vessel and point that are involved.
+         """
         vessels = list(tree.descendants)
 
         def get_smallest_distance(p):
-
             def make_tuple(v):
                 # Contains the distance to the vessel, and the endpoints of the vessel.
                 d = v.line_seg.distance_to(p)
@@ -141,8 +157,19 @@ class CCONetworkMaker:
 
         return max(get_smallest_distance(p) for p in self.domain.point_grid(samples))
 
+    def distance_from_terminal(self, tree, point):
+        """Approximate the smallest distance from this point to a terminal node.
+        :returns the smallest distance, and the terminal node involved.
+        """
+        vessels = tree.descendants
+        terminals = [v.distal_point for v in vessels if len(v.children) == 0]  # Take the vessels with no children.
+
+        return min((LineSegment(point, t).length, t) for t in terminals)
+
     def greatest_distance_from_terminal(self, tree, samples=1000):
-        """Approximate the greatest distance from any terminal node. """
+        """Approximate the greatest distance from any terminal node.
+        :returns the greatest distance, and the terminal node involved.
+        """
         vessels = tree.descendants
         terminals = [v.distal_point for v in vessels if len(v.children) == 0]  # Take the vessels with no children.
 
@@ -153,7 +180,7 @@ class CCONetworkMaker:
         return max(get_smallest_distance(p) for p in self.domain.point_grid(samples))
 
     def count_blackboxes(self, tree, samples=1000):
-        """Count the number of "micro-circulatory black boxes" reached by each point. """
+        """Count the number of "micro-circulatory black boxes" reached by each point, and :return it. """
         vessels = tree.descendants
         terminals = [v.distal_point for v in vessels if len(v.children) == 0]  # Take the vessels with no children.
         blackbox_radius = self.domain.characteristic_length(tree.num_terminals)
@@ -165,7 +192,7 @@ class CCONetworkMaker:
         # of micro-circulatory black boxes it reaches.
 
     def run(self, terminals: int) -> BaseBloodVessel:
-        """Generate the trees, returning the final one. """
+        """Generate the trees, and :return the final one. """
         assert terminals > 0
         *_, root = self.generate_trees(terminals)
         return root

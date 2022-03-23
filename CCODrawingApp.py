@@ -11,8 +11,16 @@ from LinAlg import Vec2D
 from VascularDomain import CircularVascularDomain
 
 DRAW_RADII = True
-SAMPLES = 100
+SAMPLES = 5
 GLOBAL_RADIUS = 400
+
+
+def write_data_to_file(filepath, data, header=None):
+    """Write a 2D array of result values to a specified filepath with tab-separated values. """
+    with open(f"results/cco-results/{filepath}", mode="w") as f:
+        if header is not None:
+            f.write("\t".join((field for field in header)) + "\n")
+        f.write("\n".join(("\t".join((str(datum) for datum in row))) for row in data))
 
 
 class CCODrawingApp:
@@ -29,15 +37,29 @@ class CCODrawingApp:
         for i, tr in enumerate(tree_gen):
             logging.info(f"Starting iteration {i + 1}")
             self.trees.append(tr)
-            CCODrawingApp.write_to_file(i, tr)
+            CCODrawingApp.write_pressures_flows_to_file(i, tr)
         self.vessel_furthest_point = m.greatest_distance_from_vessel(ts[iterations - 1], SAMPLES)
         self.terminal_furthest_point = m.greatest_distance_from_terminal(ts[iterations - 1], SAMPLES)
         self.blackbox_counts = m.count_blackboxes(ts[iterations - 1], SAMPLES)
         logging.info(f"Vessel Furthest Point is {self.vessel_furthest_point[0]}")
         logging.info(f"Terminal Furthest Point is {self.terminal_furthest_point[0]}")
+        self.compute_sample_point_distances(list(v.point_grid(SAMPLES)))
+
+    def compute_sample_point_distances(self, sample_points):
+        """For the final tree, record the distances to and from each point in a file"""
+        t = self.trees[-1]  # The final tree
+        vessel_furthest_points = {s: self.maker.distance_from_vessel(t, s) for s in sample_points}
+        terminal_furthest_points = {s: self.maker.distance_from_terminal(t, s) for s in sample_points}
+        print(vessel_furthest_points)
+        print(terminal_furthest_points)
+        vessel_data = ((a, b, c) for a, (b, c) in vessel_furthest_points.items())
+        write_data_to_file("vessel.txt", vessel_data, ("Point", "Distance", "Start and End Point"))
+        terminal_data = ((a, b, c) for a, (b, c) in terminal_furthest_points.items())
+        write_data_to_file("terminal.txt", terminal_data, ("Point", "Distance", "Terminal"))
+        return vessel_furthest_points, terminal_furthest_points
 
     @staticmethod
-    def write_to_file(identifier, tree):
+    def write_pressures_flows_to_file(identifier, tree):
         # Store readable identifiers for each vessel
         vessel_names = {}
         for i, v in enumerate(tree.descendants):
@@ -168,5 +190,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = CCODrawingApp(55)
+    app = CCODrawingApp(3)
     app.run()
