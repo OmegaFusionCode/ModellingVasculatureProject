@@ -26,6 +26,13 @@ class InvasionPercolationDrawingApp:
         #print(self.remote_cell.i, self.remote_cell.j)
         #for c, es in net.adjacency_list.items():
         #    print(f"({c.i},{c.j}) - {es}")
+        distances = net.compute_manhattan_distances(lambda c: c.is_reached)
+        dead_end_nodes, self.dead_ends = net.remove_dead_ends()
+        distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c.is_reached and c in dead_end_nodes)
+        #shortest_path_nodes = net.shortest_path_edges()
+        #f = lambda v, e: v is e.a or v is e.b  # TODO: This
+        print(np.matrix(distances).transpose())
+        print(np.matrix(distances_no_dead_ends).transpose())
 
 
     def get_coords(self, a):
@@ -69,7 +76,8 @@ class InvasionPercolationDrawingApp:
         #                           center=self.get_coords(c))
         self._draw_vertex_circles((self.remote_cell,), (255, 0, 255))
         self._draw_edge_lines(self.network.edges, (255, 0, 0))
-        self._draw_edge_lines(self.network.remove_dead_ends(), (0, 255, 0))
+        self._draw_edge_lines(self.dead_ends, (0, 255, 0))
+        self._draw_edge_lines(self.network.shortest_path_edges, (255, 0, 255))
         #for e in self.network.shortest_path_edges:
         #    pg.draw.line(surface=self.surface,
         #                 color=(0, 255, 0),
@@ -89,5 +97,5 @@ class InvasionPercolationDrawingApp:
 
 
 if __name__ == "__main__":
-    app = InvasionPercolationDrawingApp(50, 50, 0.55)
+    app = InvasionPercolationDrawingApp(5, 5, 0.55)
     app.run()
