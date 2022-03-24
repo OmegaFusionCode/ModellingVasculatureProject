@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from queue import PriorityQueue, Queue, LifoQueue
 from random import random
 
@@ -85,6 +87,24 @@ class InvasionPercolationNetwork:
     def adjacency_list(self):
         """Return an adjacency list in the form of a dictionary. """
         return {c: [e.a if e.a is not c else e.b for e in c.edges] for c in concat(self._cells)}
+
+    def compute_manhattan_distances(self, predicate):
+        """Compute and :return the Manhattan distance of each cell from the cells satisfying a given predicate. """
+        q = Queue()
+        distances = [[None for _ in range(self.y)] for _ in range(self.x)]
+        for c in concat(self.cells):
+            if predicate(c):
+                q.put((c, 0))
+        while not q.empty():
+            c, n = q.get()
+            if distances[c.i][c.j] is None:
+                distances[c.i][c.j] = n
+                for d in self._get_cell_neighbours(c):
+                    q.put((d, n+1))
+        return distances
+
+    def compute_pressures(self):
+        """Compute and :return the pressure at each cell in the network. """
 
     def _generate_random_capacities(self):
         return [[random() for _ in range(self.y)] for _ in range(self.x)]
@@ -204,7 +224,7 @@ class InvasionPercolationNetwork:
         nodes_deleted = {c: False for c in concat(self._cells)}
 
         def can_find(start, no_visit):
-            # Can we find the source or the sink without ever visiting the node no_visit
+            # Can we find the source or the sink without ever visiting the node no_visit?
             s = LifoQueue()
             discovered = {c: False for c in concat(self._cells)}
             discovered[start] = True
