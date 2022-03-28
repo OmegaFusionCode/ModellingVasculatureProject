@@ -70,16 +70,16 @@ class InvasionPercolationNetwork:
         self._make_network()
 
     @property
-    def cells(self):
+    def cells(self) -> List[List[Cell]]:
         """A 2D list of the cells in the graph. """
         return self._cells
 
     @property
-    def nodes(self):
+    def nodes(self) -> List[(int, int)]:
         return concat([c.indices for c in self._cells])
 
     @property
-    def edges(self):
+    def edges(self) -> List[Edge]:
         """A 2D list of the edges in the graph. """
         return self._edges
 
@@ -103,8 +103,84 @@ class InvasionPercolationNetwork:
                     q.put((d, n+1))
         return distances
 
-    def compute_pressures(self):
+    def compute_pressures(self, leaky=False):
         """Compute and :return the pressure at each cell in the network. """
+        return self._compute_pressures_no_leaky() if leaky == False else self._compute_pressures_leaky()
+
+    def _compute_pressures_no_leaky(self):
+        # Do a linear algebra calculation to compute the flows in the system.
+        # By convention, "towards the bottom left corner" is the positive direction.
+        R = 1   # The resistance of a vessel.
+        cells = tuple(c for c in concat(self.cells) if c.is_reached)
+        edges = tuple(self.edges)
+        start = self.top_left
+        end = self.bottom_right
+        cell_indices = {c: i for i, c in enumerate(cells)}  # To quickly look up the index of a cell.
+        edge_indices = {e: i for i, e in enumerate(edges)}  # To quickly look up the index of an edge.
+        matrix = []
+        result = []
+        q_num = len(edges)  # There is a variable for every line segment.
+        p_num = len(cells)  # There is a variable for every cell.
+
+        # some helper functions
+        def q(e: Edge): return edge_indices[e]
+
+        def p(c: Cell): return q_num + cell_indices[c]
+
+        def find_edge(a, b):
+            # Find the edge that connects a and b
+            for e in a.edges:
+                if (e.a is a and e.b is b) or (e.b is a and e.a is b):
+                    return e
+            assert False
+
+        def minmax(e):
+            a = e.a
+            b = e.b
+            return (a, b) if cell_indices[a] < cell_indices[b] else (b, a)
+
+        for i, c in enumerate(cells):
+            # At each cell, we need the input and output flows to add to 0.
+            if c is start:  # We don't count the start cell. This ensures that our matrix is full rank.
+                continue
+            result.append((0 if c is not end else 1,))  # Only the endpoint is allowed to have flow exit the system.
+
+            this_row = [0 for _ in range(q_num + p_num)]
+            for e in c.edges:
+                assert e in edges   # TODO: Remove this since it's expensive!
+                a, b = minmax(e)
+                assert cell_indices[a] < cell_indices[b]  # Check
+                assert (a is c or b is c) and (a is not c or b is not c)
+                this_row[q(e)] = 1 if b is c else -1
+            matrix.append(this_row)
+
+        for i, e in enumerate(edges):
+            result.append((0,))
+            this_row = [0 for _ in range(q_num + p_num)]
+            # At each edge, we want the pressure drop to equal the resistance (1) times the flow.
+            a, b = minmax(e)
+            assert cell_indices[a] < cell_indices[b]  # Check
+            this_row[p(a)] = 1
+            this_row[p(b)] = -1
+            this_row[q(e)] = -R
+            matrix.append(this_row)
+
+        # A final row to fix the output pressure at 0.
+        this_row = [0 for _ in range(q_num + p_num)]
+        this_row[p(end)] = 1
+        matrix.append(this_row)
+        result.append((0,))
+
+        mat = np.array(matrix)
+        res = np.array(result)
+
+        print("Reached")
+        print(mat)
+        print(res)
+        return np.linalg.solve(mat, res)
+
+    def _compute_pressures_leaky(self):
+        pass  # TODO: _compute_pressures_leaky
 
     def _generate_random_capacities(self):
         return [[random() for _ in range(self.y)] for _ in range(self.x)]
@@ -215,11 +291,9 @@ class InvasionPercolationNetwork:
         """Remove the dead ends from the network.
         :returns a list of the edges after the dead ends have been removed.
         """
-
         source = self.top_left
         sink = self.bottom_right
         adj = self.adjacency_list
-
         deleted = {e: False for e in self._edges}
         nodes_deleted = {c: False for c in concat(self._cells)}
 

@@ -29,11 +29,13 @@ class InvasionPercolationDrawingApp:
         #    print(f"({c.i},{c.j}) - {es}")
         distances = net.compute_manhattan_distances(lambda c: c.is_reached)
         dead_end_nodes, self.dead_ends = net.remove_dead_ends()
-        distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c.is_reached and c in dead_end_nodes)
+        distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c in dead_end_nodes)
         #shortest_path_nodes = net.shortest_path_edges()
         #f = lambda v, e: v is e.a or v is e.b  # TODO: This
         print(np.matrix(distances).transpose())
         print(np.matrix(distances_no_dead_ends).transpose())
+        print(len(net.edges))
+        print(net.compute_pressures(leaky=False))
 
 
     def get_coords(self, a):
@@ -79,12 +81,6 @@ class InvasionPercolationDrawingApp:
         self._draw_edge_lines(self.network.edges, (255, 0, 0))
         self._draw_edge_lines(self.dead_ends, (0, 255, 0))
         self._draw_edge_lines(self.network.shortest_path_edges, (255, 0, 255))
-        #for e in self.network.shortest_path_edges:
-        #    pg.draw.line(surface=self.surface,
-        #                 color=(0, 255, 0),
-        #                 width=self.INTERVAL // 5,
-        #                 start_pos=self.get_coords(e.a),
-        #                 end_pos=self.get_coords(e.b))
         pg.display.flip()
 
     def run(self):
