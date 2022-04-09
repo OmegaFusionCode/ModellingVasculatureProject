@@ -100,7 +100,7 @@ class InvasionPercolationNetwork:
             if distances[c.i][c.j] is None:
                 distances[c.i][c.j] = n
                 for d in self._get_cell_neighbours(c):
-                    q.put((d, n+1))
+                    q.put((d, n + 1))
         return distances
 
     def compute_pressures(self, leaky=False):
@@ -174,10 +174,21 @@ class InvasionPercolationNetwork:
         mat = np.array(matrix)
         res = np.array(result)
 
-        print("Reached")
-        print(mat)
-        print(res)
-        return np.linalg.solve(mat, res)
+        #print("Reached")
+        #print(mat)
+        #print(res)
+        pressures_flows = np.linalg.solve(mat, res)
+        #print(pressures_flows)
+
+        # we have the results. so find the associated cell and edge.
+
+        flow_results = [(e, pressures_flows[q(e), 0]) for e in edges]
+        pressure_results = [(c, pressures_flows[p(c), 0]) for c in cells]
+
+        #print(pressure_results)
+        #print(flow_results)
+
+        return flow_results, pressure_results
 
     def _compute_pressures_leaky(self):
         pass  # TODO: _compute_pressures_leaky
@@ -329,10 +340,9 @@ class InvasionPercolationNetwork:
             if not deleted[e]:
                 delete_scc_conditional(e.a, e.b)
                 delete_scc_conditional(e.b, e.a)
-
-        # Return the edges.
-        return [e for e in self._edges if not nodes_deleted[e.a] and not nodes_deleted[e.b]]
-
+        # Return the nodes and the edges.
+        return [v for v in concat(self._cells) if v.is_reached and not nodes_deleted[v]], \
+               [e for e in self._edges if not nodes_deleted[e.a] and not nodes_deleted[e.b]]
 
     @property
     def shortest_path_edges(self):
@@ -392,7 +402,7 @@ class InvasionPercolationNetwork:
 
 
 def main():
-    m = InvasionPercolationNetwork(10, 10, 0.3)
+    m = InvasionPercolationNetwork(20, 20, 0.2)
     cells, _ = m.make_network()
     a = [[True if c.is_reached else False for c in row] for row in cells]
     print(np.array(a))
