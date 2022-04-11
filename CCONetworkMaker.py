@@ -28,7 +28,7 @@ class CCONetworkMaker:
     def __init__(self, radius, initial_point, flow, domain: VascularDomain) -> None:
         self.radius = radius
         self.initial_point = initial_point
-        self.flow = flow
+        self.flow = flow    #TODO: Never used!
         self.domain = domain
         self._origin = None
         # Prepare some lists for logging purposes
