@@ -177,7 +177,7 @@ class VoronoiNetworkMaker:
 
 
 if __name__ == "__main__":
-    v = VoronoiNetworkMaker(20, 100, 100)
+    v = VoronoiNetworkMaker(200, 500, 500)
     print(list(v.vertices))
     print(v.adj)
     print(v.supply_demand)

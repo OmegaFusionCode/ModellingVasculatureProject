@@ -6,7 +6,7 @@ from VoronoiNetworkMaker import VoronoiNetworkMaker
 class VoronoiDrawingApp:
 
     RADIUS = 8      # Really the width of a vessel
-    INTERVAL = 10   # The interval to use when checking oxygenation of points
+    INTERVAL = 25   # The interval to use when checking oxygenation of points
 
     def __init__(self, x, y, pts):
         pg.init()
@@ -53,8 +53,9 @@ class VoronoiDrawingApp:
 
     def run(self):
         i = 200
-        n = 16000
+        n = len(self.distances)
         self.draw(i)
+        x_index_change = self.y // self.INTERVAL
         running = True
         while running:
             for event in pg.event.get():
@@ -62,16 +63,16 @@ class VoronoiDrawingApp:
                     pg.quit()
                     running = False
                 if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_UP and i > 0:
+                    if event.key == pg.K_UP and i % x_index_change >= 1:
                         self.draw(i := i - 1)
-                    if event.key == pg.K_DOWN and i < n:
+                    if event.key == pg.K_DOWN and i % x_index_change < x_index_change - 1:
                         self.draw(i := i + 1)
-                    if event.key == pg.K_LEFT and i > 0:
-                        self.draw(i := i - self.y // self.INTERVAL)
-                    if event.key == pg.K_RIGHT and i < n:
-                        self.draw(i := i + self.y // self.INTERVAL)
+                    if event.key == pg.K_LEFT and i >= x_index_change:
+                        self.draw(i := i - x_index_change)
+                    if event.key == pg.K_RIGHT and i < n - x_index_change:
+                        self.draw(i := i + x_index_change)
 
 
 if __name__ == "__main__":
-    app = VoronoiDrawingApp(800, 800, 50)
+    app = VoronoiDrawingApp(800, 800, 100)
     app.run()
