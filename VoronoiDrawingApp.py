@@ -5,7 +5,8 @@ from VoronoiNetworkMaker import VoronoiNetworkMaker
 
 class VoronoiDrawingApp:
 
-    RADIUS = 8
+    RADIUS = 8      # Really the width of a vessel
+    INTERVAL = 10   # The interval to use when checking oxygenation of points
 
     def __init__(self, x, y, pts):
         pg.init()
@@ -15,30 +16,60 @@ class VoronoiDrawingApp:
         self.n = pts
         self.surface = pg.display.get_surface()
         self.network = net = VoronoiNetworkMaker(pts, x, y)
+        self.distances = []
+        for i in range(0, x, self.INTERVAL):
+            for j in range(0, y, self.INTERVAL):
+                self.distances.append(((i, j), net.distance_from_vessel((i, j))))
+        print(net.greatest_distance_from_vessel(self.INTERVAL))
+        self.index = 0
 
-    def _draw_edge_lines(self, edges, colour):
+    def _draw_edge_lines(self, edges, colour, width):
         for e in edges:
             pg.draw.line(surface=self.surface,
                          color=colour,
-                         width=self.RADIUS,
+                         width=width,
                          start_pos=e[0],
                          end_pos=e[1])
 
-    def draw(self):
+    def _draw_vertex_circles(self, vertices, colour, radius):
+        for v in vertices:
+            pg.draw.circle(surface=self.surface,
+                           color=colour,
+                           radius=radius,
+                           center=v)
+
+    def draw(self, index):
+        self.surface.fill((0, 0, 0))
         inlet, network, outlet = self.network.edges_partitioned
-        self._draw_edge_lines(inlet, (0, 255, 0))
-        self._draw_edge_lines(network, (255, 0, 0))
-        self._draw_edge_lines(outlet, (0, 255, 255))
+        self._draw_edge_lines(inlet, (0, 255, 0), self.RADIUS)
+        self._draw_edge_lines(network, (255, 0, 0), self.RADIUS)
+        self._draw_edge_lines(outlet, (0, 255, 255), self.RADIUS)
+        v, (d, (u1, u2)) = self.distances[index]
+
+        self._draw_vertex_circles((v,), (0, 0, 255), 10)
+        self._draw_edge_lines(((u1, u2),), (0, 0, 255), 5)
+        print(d)
         pg.display.flip()
 
     def run(self):
-        self.draw()
+        i = 200
+        n = 16000
+        self.draw(i)
         running = True
         while running:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
                     running = False
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_UP and i > 0:
+                        self.draw(i := i - 1)
+                    if event.key == pg.K_DOWN and i < n:
+                        self.draw(i := i + 1)
+                    if event.key == pg.K_LEFT and i > 0:
+                        self.draw(i := i - self.y // self.INTERVAL)
+                    if event.key == pg.K_RIGHT and i < n:
+                        self.draw(i := i + self.y // self.INTERVAL)
 
 
 if __name__ == "__main__":

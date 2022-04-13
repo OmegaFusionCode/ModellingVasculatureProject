@@ -101,6 +101,11 @@ class Vec2D:
         """Alternative constructor to build from an existing Numpy array."""
         return Vec2D(array[0], array[1])
 
+    @staticmethod
+    def from_tuple(t):
+        """Alternative constructor to build from a tuple."""
+        return Vec2D(t[0], t[1])
+
     def __init__(self, x, y) -> None:
         self.arr = np.array([x, y])
 
