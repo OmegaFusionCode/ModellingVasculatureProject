@@ -11,7 +11,7 @@ from LinAlg import Vec2D
 from VascularDomain import CircularVascularDomain
 
 DRAW_RADII = True
-SAMPLES = 5
+SAMPLES = 50
 GLOBAL_RADIUS = 400
 
 
@@ -190,5 +190,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = CCODrawingApp(3)
+    app = CCODrawingApp(20)
     app.run()
