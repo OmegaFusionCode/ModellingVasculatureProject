@@ -8,10 +8,11 @@ class InvasionPercolationDrawingApp:
     INTERVAL = 50
 
     def __init__(self, x, y, occ):
+        pg.init()
+        pg.display.set_mode((x * self.INTERVAL, y * self.INTERVAL))
         self.x = x
         self.y = y
         self.occ = occ
-        pg.display.set_mode((x * self.INTERVAL, y * self.INTERVAL))
         self.surface = pg.display.get_surface()
         self.network = net = InvasionPercolationNetwork(x, y, occ)
         self.failures_top_left, self.top_left = net.find_top_left()
@@ -39,7 +40,6 @@ class InvasionPercolationDrawingApp:
         print([(c.indices, v) for c, v in pressure_results])
         def ordered(i, j): return (i, j) if i < j else (j, i)
         print([(ordered(e.a.indices, e.b.indices), v) for e, v in flow_results])
-
 
     def get_coords(self, a):
         x_coord = self.INTERVAL // 2 + a.i * self.INTERVAL
