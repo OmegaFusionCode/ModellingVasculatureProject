@@ -190,5 +190,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = CCODrawingApp(20)
+    app = CCODrawingApp(50)
     app.run()

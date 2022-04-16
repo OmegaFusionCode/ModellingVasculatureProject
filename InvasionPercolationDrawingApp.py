@@ -5,7 +5,7 @@ from InvasionPercolationNetwork import InvasionPercolationNetwork
 
 
 class InvasionPercolationDrawingApp:
-    INTERVAL = 50
+    INTERVAL = 10
 
     def __init__(self, x, y, occ):
         pg.init()
@@ -36,10 +36,10 @@ class InvasionPercolationDrawingApp:
         print(np.matrix(distances).transpose())
         #print(np.matrix(distances_no_dead_ends).transpose())
         print(len(net.edges))
-        flow_results, pressure_results = net.compute_pressures(leaky=False)
+        """flow_results, pressure_results = net.compute_pressures(leaky=False)
         print([(c.indices, v) for c, v in pressure_results])
         def ordered(i, j): return (i, j) if i < j else (j, i)
-        print([(ordered(e.a.indices, e.b.indices), v) for e, v in flow_results])
+        print([(ordered(e.a.indices, e.b.indices), v) for e, v in flow_results])"""
 
     def get_coords(self, a):
         x_coord = self.INTERVAL // 2 + a.i * self.INTERVAL
@@ -99,5 +99,5 @@ class InvasionPercolationDrawingApp:
 
 
 if __name__ == "__main__":
-    app = InvasionPercolationDrawingApp(5, 5, 0.5)
+    app = InvasionPercolationDrawingApp(100, 100, 0.08)
     app.run()
