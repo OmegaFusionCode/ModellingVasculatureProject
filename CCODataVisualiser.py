@@ -8,11 +8,14 @@ def plot_data(d):
     plotter = HistogramPlotter(d, len(d) // 20)
     plotter.plot()
 
+
 def get_terminal_data():
     return _get_second_entry_data("terminal")
 
+
 def get_vessel_data():
     return _get_second_entry_data("vessel")
+
 
 def _get_second_entry_data(filename):
     data = []
@@ -24,7 +27,6 @@ def _get_second_entry_data(filename):
                 continue
             data.append(float(line[1]))
     return data
-
 
 
 if __name__ == "__main__":
