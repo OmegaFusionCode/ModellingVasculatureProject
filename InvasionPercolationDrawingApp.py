@@ -33,13 +33,17 @@ class InvasionPercolationDrawingApp:
         distances = net.compute_manhattan_distances(lambda c: c.is_reached)
         dead_end_nodes, self.dead_ends = net.remove_dead_ends()
         distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c in dead_end_nodes)
+        shortest_path_edges = net.shortest_path_edges
+        shortest_path_nodes = [shortest_path_edges[0].a] + [e.b for e in shortest_path_edges]
+        print([c.indices for c in shortest_path_nodes])
+        distances_shortest_path = net.compute_manhattan_distances(lambda c: c in shortest_path_nodes)
         #shortest_path_nodes = net.shortest_path_edges()
         #f = lambda v, e: v is e.a or v is e.b  # TODO: This
         print(np.matrix(distances).transpose())
         cell_distances = []
-        for i, (rows1, rows2) in enumerate(zip(distances, distances_no_dead_ends)):
-            for j, (x, y) in enumerate(zip(rows1, rows2)):
-                cell_distances.append(((i, j), x, y))
+        for i, (rows1, rows2, rows3) in enumerate(zip(distances, distances_no_dead_ends, distances_shortest_path)):
+            for j, (x, y, z) in enumerate(zip(rows1, rows2, rows3)):
+                cell_distances.append(((i, j), x, y, z))
         print(cell_distances)
         write_data_to_file("percolation/results.txt", cell_distances, header=("Cell", "Distance", "with Dead Ends", "Shortest Path"))
         #print(np.matrix(distances_no_dead_ends).transpose())
@@ -90,10 +94,10 @@ class InvasionPercolationDrawingApp:
         #                           center=self.get_coords(c))
         #self._draw_vertex_circles((self.remote_cell,), (255, 0, 255))
         self._draw_edge_lines(self.network.edges, (255, 0, 0))
+        self._draw_edge_lines(self.dead_ends, (0, 255, 0))
+        self._draw_edge_lines(self.network.shortest_path_edges, (0, 255, 255))
         self._draw_vertex_circles((self.network.top_left,), (255, 0, 255))
         self._draw_vertex_circles((self.network.bottom_right,), (255, 0, 255))
-        self._draw_edge_lines(self.dead_ends, (0, 255, 0))
-        #self._draw_edge_lines(self.network.shortest_path_edges, (255, 0, 255))
         pg.display.flip()
 
     def run(self):
