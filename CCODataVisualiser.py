@@ -4,7 +4,7 @@ from HistogramPlotter import HistogramPlotter
 
 
 def plot_data(d):
-    #  we want 3 times as many data values as bins
+    #  we want 20 times as many data values as bins
     plotter = HistogramPlotter(d, len(d) // 20)
     plotter.plot()
 
@@ -19,7 +19,7 @@ def get_vessel_data():
 
 def _get_second_entry_data(filename):
     data = []
-    with open(f"results/cco-results/{filename}.txt") as tsv:
+    with open(f"results/cco/{filename}.txt") as tsv:
         first_line = True
         for line in csv.reader(tsv, delimiter="\t"):
             if first_line:

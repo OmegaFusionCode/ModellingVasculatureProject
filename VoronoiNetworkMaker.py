@@ -147,10 +147,10 @@ class VoronoiNetworkMaker:
         # The distance to the nearest vessel.
         return min(make_tuple(v) for v in vessels)
 
-    def greatest_distance_from_vessel(self, interval):
+    def greatest_distance_from_vessel(self, interval, x_border, y_border):
         points = []
-        for i in range(0, self.x, interval):
-            for j in range(0, self.x, interval):
+        for i in range(x_border, self.x - x_border, interval):
+            for j in range(y_border, self.y - y_border, interval):
                 points.append((i, j))
         vessel_distances = [(self.distance_from_vessel(p), p) for p in points]
         (d, e), v = max(vessel_distances)

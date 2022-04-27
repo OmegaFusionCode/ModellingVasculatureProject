@@ -5,9 +5,7 @@ from random import random
 
 import numpy as np
 
-
-def concat(xs):
-    return [y for x in xs for y in x]
+from utils import concat
 
 
 class Cell:
@@ -402,7 +400,7 @@ class InvasionPercolationNetwork:
 
 
 def main():
-    m = InvasionPercolationNetwork(20, 20, 0.2)
+    m = InvasionPercolationNetwork(50, 50, 0.3)
     cells, _ = m.make_network()
     a = [[True if c.is_reached else False for c in row] for row in cells]
     print(np.array(a))

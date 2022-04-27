@@ -2,9 +2,11 @@ import pygame as pg
 import numpy as np
 
 from InvasionPercolationNetwork import InvasionPercolationNetwork
+from utils import write_data_to_file
 
 
 class InvasionPercolationDrawingApp:
+
     INTERVAL = 10
 
     def __init__(self, x, y, occ):
@@ -23,17 +25,23 @@ class InvasionPercolationDrawingApp:
         #while curr is not self.top_left:
         #    curr, e = a[curr.i][curr.j]
         #    self.shortest_path_edges.append(e)
-        self.remote_distance, self.remote_cell = net.find_most_distant_point(net.cells)
+        #self.remote_distance, self.remote_cell = net.find_most_distant_point(net.cells)
         #print(self.remote_distance)
         #print(self.remote_cell.i, self.remote_cell.j)
         #for c, es in net.adjacency_list.items():
         #    print(f"({c.i},{c.j}) - {es}")
         distances = net.compute_manhattan_distances(lambda c: c.is_reached)
-        #dead_end_nodes, self.dead_ends = net.remove_dead_ends()
-        #distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c in dead_end_nodes)
+        dead_end_nodes, self.dead_ends = net.remove_dead_ends()
+        distances_no_dead_ends = net.compute_manhattan_distances(lambda c: c in dead_end_nodes)
         #shortest_path_nodes = net.shortest_path_edges()
         #f = lambda v, e: v is e.a or v is e.b  # TODO: This
         print(np.matrix(distances).transpose())
+        cell_distances = []
+        for i, (rows1, rows2) in enumerate(zip(distances, distances_no_dead_ends)):
+            for j, (x, y) in enumerate(zip(rows1, rows2)):
+                cell_distances.append(((i, j), x, y))
+        print(cell_distances)
+        write_data_to_file("percolation/results.txt", cell_distances, header=("Cell", "Distance", "with Dead Ends", "Shortest Path"))
         #print(np.matrix(distances_no_dead_ends).transpose())
         print(len(net.edges))
         """flow_results, pressure_results = net.compute_pressures(leaky=False)
@@ -50,7 +58,7 @@ class InvasionPercolationDrawingApp:
         for c in cells:
             pg.draw.circle(surface=self.surface,
                            color=colour,
-                           radius=self.INTERVAL // 4,
+                           radius=self.INTERVAL // 2,
                            center=self.get_coords(c))
 
     def _draw_edge_lines(self, edges, colour):
@@ -84,7 +92,7 @@ class InvasionPercolationDrawingApp:
         self._draw_edge_lines(self.network.edges, (255, 0, 0))
         self._draw_vertex_circles((self.network.top_left,), (255, 0, 255))
         self._draw_vertex_circles((self.network.bottom_right,), (255, 0, 255))
-        #self._draw_edge_lines(self.dead_ends, (0, 255, 0))
+        self._draw_edge_lines(self.dead_ends, (0, 255, 0))
         #self._draw_edge_lines(self.network.shortest_path_edges, (255, 0, 255))
         pg.display.flip()
 
@@ -99,5 +107,5 @@ class InvasionPercolationDrawingApp:
 
 
 if __name__ == "__main__":
-    app = InvasionPercolationDrawingApp(100, 100, 0.08)
+    app = InvasionPercolationDrawingApp(50, 50, 0.5)
     app.run()

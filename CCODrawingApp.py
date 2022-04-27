@@ -9,18 +9,11 @@ import pygame as pg
 from CCONetworkMaker import CCONetworkMaker
 from LinAlg import Vec2D
 from VascularDomain import CircularVascularDomain
+from utils import write_data_to_file
 
 DRAW_RADII = True
 SAMPLES = 50
 GLOBAL_RADIUS = 400
-
-
-def write_data_to_file(filepath, data, header=None):
-    """Write a 2D array of result values to a specified filepath with tab-separated values. """
-    with open(f"results/cco-results/{filepath}", mode="w") as f:
-        if header is not None:
-            f.write("\t".join((field for field in header)) + "\n")
-        f.write("\n".join(("\t".join((str(datum) for datum in row))) for row in data))
 
 
 class CCODrawingApp:
@@ -53,9 +46,9 @@ class CCODrawingApp:
         print(vessel_furthest_points)
         print(terminal_furthest_points)
         vessel_data = ((a, b, c) for a, (b, c) in vessel_furthest_points.items())
-        write_data_to_file("vessel.txt", vessel_data, ("Point", "Distance", "Start and End Point"))
+        write_data_to_file("cco/vessel.txt", vessel_data, ("Point", "Distance", "Start and End Point"))
         terminal_data = ((a, b, c) for a, (b, c) in terminal_furthest_points.items())
-        write_data_to_file("terminal.txt", terminal_data, ("Point", "Distance", "Terminal"))
+        write_data_to_file("cco/terminal.txt", terminal_data, ("Point", "Distance", "Terminal"))
         return vessel_furthest_points, terminal_furthest_points
 
     @staticmethod
@@ -190,5 +183,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = CCODrawingApp(50)
+    app = CCODrawingApp(30)
     app.run()
