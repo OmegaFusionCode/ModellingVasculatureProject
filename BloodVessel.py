@@ -413,6 +413,7 @@ class BloodVessel(BaseBloodVessel):
         k_new_inv = (s_a ** 4 / res_a) + (s_b ** 4 / res_b)
         self._k_res = k_new = 1 / k_new_inv
 
+        # An extension to the project could be to further reduce these tolerance values!
         assert abs(1.0 - s_a ** g - s_b ** g) < 1e-13  # I.e. satisfies Murray's Law
         assert abs(res_a * nt_a * s_a ** -4 - res_b * nt_b * s_b ** -4) < 1e-9  # I.e. parallel pressures are equal
         assert abs((self.length + k_new) * (nt_a + nt_b)
