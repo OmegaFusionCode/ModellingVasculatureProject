@@ -43,12 +43,11 @@ class CCODrawingApp:
         t = self.trees[-1]  # The final tree
         vessel_furthest_points = {s: self.maker.distance_from_vessel(t, s) for s in sample_points}
         terminal_furthest_points = {s: self.maker.distance_from_terminal(t, s) for s in sample_points}
-        print(vessel_furthest_points)
-        print(terminal_furthest_points)
         vessel_data = ((a, b, c) for a, (b, c) in vessel_furthest_points.items())
         write_data_to_file("cco/vessel.txt", vessel_data, ("Point", "Distance", "Start and End Point"))
         terminal_data = ((a, b, c) for a, (b, c) in terminal_furthest_points.items())
         write_data_to_file("cco/terminal.txt", terminal_data, ("Point", "Distance", "Terminal"))
+        write_data_to_file("cco/blackboxes.txt", self.blackbox_counts, ("Point", "Count"))
         return vessel_furthest_points, terminal_furthest_points
 
     @staticmethod
@@ -113,13 +112,14 @@ class CCODrawingApp:
         pg.display.flip()
         logging.info(f"Drawing state at iteration {index + 1}")
         # Draw micro-circulatory black boxes
-        #for v in self.trees[index].descendants:
-        #    if len(v.children) == 0:  # I.e. vessel is a terminal
-        #        pg.draw.circle(surface=self.surface,
-        #                       color=(127, 0, 127),
-        #                       radius=round(self.domain.characteristic_length(self.trees[index].num_terminals)),
-        #                       center=tuple(v.distal_point),
-        #                       )
+        print(self.domain.characteristic_length(self.trees[index].num_terminals))
+        for v in self.trees[index].descendants:
+            if len(v.children) == 0:  # I.e. vessel is a terminal
+                pg.draw.circle(surface=self.surface,
+                               color=(127, 0, 127),
+                               radius=round(self.domain.characteristic_length(self.trees[index].num_terminals)),
+                               center=tuple(v.distal_point),
+                               )
         # Draw grid sample points
         self._draw_circles(self.domain.point_grid(SAMPLES),
                            1,
@@ -134,20 +134,20 @@ class CCODrawingApp:
                          end_pos=tuple(v.distal_point),
                          width=r,
                          )
-        _, t, p = self.terminal_furthest_point
-        self._draw_circles((p, t),
-                           radius=5,
-                           colour=(0, 255, 0))
-        _, ps, p = self.vessel_furthest_point
-        self._draw_circles((p,),
-                           radius=5,
-                           colour=(0, 255, 255))
-        pg.draw.line(surface=self.surface,
-                     color=(0, 255, 255),
-                     width=1,
-                     start_pos=ps[0],
-                     end_pos=ps[1],
-                     )
+        #_, t, p = self.terminal_furthest_point
+        #self._draw_circles((p, t),
+        #                   radius=5,
+        #                   colour=(0, 255, 0))
+        #_, ps, p = self.vessel_furthest_point
+        #self._draw_circles((p,),
+        #                   radius=5,
+        #                   colour=(0, 255, 255))
+        #pg.draw.line(surface=self.surface,
+        #             color=(0, 255, 255),
+        #             width=1,
+        #             start_pos=ps[0],
+        #             end_pos=ps[1],
+        #             )
         pg.display.flip()
 
     def run(self):
@@ -183,5 +183,5 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         )
     logging.getLogger().addHandler(logging.StreamHandler())
-    app = CCODrawingApp(30)
+    app = CCODrawingApp(15)
     app.run()
