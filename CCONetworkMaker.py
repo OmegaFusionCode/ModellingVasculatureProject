@@ -42,7 +42,8 @@ class CCONetworkMaker:
 
     def _generate_terminal_point(self, k_term):
         found = False
-        d_thresh = math.sqrt(self.perfusion_area / k_term)
+        # d_thresh = math.sqrt(self.perfusion_area / k_term)
+        d_thresh = math.sqrt(self.perfusion_area / (k_term * math.pi))
         logging.debug(f"{d_thresh=}")
         i = 0
         while not found:
